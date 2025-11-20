@@ -36,7 +36,7 @@ public class Funcionario {
     private Cargos Cargo;
 
     @ManyToOne
-    @JoinColumn(name = "id_equipe")
+    @JoinColumn(name = "idEquipe")
     private Equipe equipe;
 
 }
