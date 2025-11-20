@@ -1,10 +1,10 @@
-package com.example.sos_rota_emergency_dispatch;
+package com.pi.grafos;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SosRotaEmergencyDispatchApplicationTests {
+class GrafosApplicationTests {
 
 	@Test
 	void contextLoads() {
