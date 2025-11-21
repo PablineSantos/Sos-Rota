@@ -20,7 +20,7 @@ public class Ocorrencia {
 
     @ManyToOne
     @JoinColumn(name = "idLocal")
-    private Bairro local;
+    private Localizacao local;
 
     @ManyToOne
     @JoinColumn(name = "idTipoOcorrencia")

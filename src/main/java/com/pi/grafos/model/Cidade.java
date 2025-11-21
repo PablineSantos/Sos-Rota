@@ -3,7 +3,6 @@ package com.pi.grafos.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,20 +13,24 @@ import lombok.Data;
 import lombok.ToString;
 
 @Entity
-@Table(name = "bairro")
+@Table(name = "cidades")
 @Data
-public class Bairro {
-    
+public class Cidade {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idBairro;
+    private long idCidade;
 
-    private String nomeBairro;
+    private String nomeCidade;
 
-    // Comentei porque estava dando ERRO DE CONFLITO
-    //@OneToMany(mappedBy = "local", cascade = CascadeType.ALL)
-    //@ToString.Exclude
-    //private List<Ocorrencia> ocorrencias = new ArrayList<>();
+    // Relacionamento com todos os bairros da cidade
+    @OneToMany(mappedBy = "cidade")
+    @ToString.Exclude
+    private List<Localizacao> locais = new ArrayList<>();
+
+    // Relacionamento com todas as ruas da cidade
+    @OneToMany(mappedBy = "cidade")
+    @ToString.Exclude
+    private List<Rua> ruas = new ArrayList<>();
     
-
 }

@@ -21,7 +21,7 @@ public class Equipe {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_equipe;
+    private Long idEquipe;
 
     private String nomeEquipe;
 
