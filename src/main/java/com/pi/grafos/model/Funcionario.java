@@ -28,12 +28,12 @@ public class Funcionario {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_funcionario;
+    private Long idFuncionario;
 
     private String nomeFuncionario;
 
     @Enumerated(EnumType.STRING)
-    private Cargos Cargo;
+    private Cargos cargo;
 
     @ManyToOne
     @JoinColumn(name = "idEquipe")

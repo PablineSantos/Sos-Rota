@@ -14,10 +14,10 @@ public class Rua {
 
     private String nomeRua;
 
-    private Double distancia; 
+    private Double distancia;
 
     @ManyToOne
-    @JoinColumn(name = "id_cidade", nullable = false)
+    @JoinColumn(name = "idCidade", nullable = false)
     private Cidade cidade;
     
     @ManyToOne

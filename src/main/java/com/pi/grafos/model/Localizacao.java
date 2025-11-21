@@ -9,18 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "localizacao") // One table for everything
+@Table(name = "localizacao")
 @Data
 public class Localizacao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long idLocal;
 
     private String nome;
 
     @Enumerated(EnumType.STRING)
-    private TipoLocalizacao tipo; // Is it a Base or a Neighborhood?
+    private TipoLocalizacao tipo; // Unidade ou Bairro
 
     // Identificador para a cidade -- Caso formos cadastrar mais de uma cidade/grafo
     @ManyToOne
@@ -28,7 +28,7 @@ public class Localizacao {
     private Cidade cidade;
 
     // Ambulancias
-    @OneToMany(mappedBy = "localizacaoAtual", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "unidade", cascade = CascadeType.ALL)
     @ToString.Exclude
     private List<Ambulancia> ambulancias = new ArrayList<>();
 
