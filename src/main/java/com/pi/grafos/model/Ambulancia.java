@@ -3,6 +3,8 @@ package com.pi.grafos.model;
 import com.pi.grafos.model.enums.AmbulanciaStatus;
 import com.pi.grafos.model.enums.TipoAmbulancia;
 
+import jakarta.persistence.Column;
+import java.util.List;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,6 +13,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -23,6 +26,7 @@ public class Ambulancia {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idAmbulancia;
 
+    @Column(unique = true)
     private String placa;
 
     @Enumerated(EnumType.STRING)
@@ -34,4 +38,7 @@ public class Ambulancia {
     @ManyToOne
     @JoinColumn(name = "idUnidade")
     private Unidades unidade;
+
+    @OneToMany(mappedBy = "ambulancia")
+    private List<Funcionario> funcionarios;
 }

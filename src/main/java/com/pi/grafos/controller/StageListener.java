@@ -1,4 +1,4 @@
-package com.pi.grafos.view;
+package com.pi.grafos.controller;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -22,8 +22,8 @@ public class StageListener implements ApplicationListener<StageReadyEvent> {
 
     // Define o titulo e o caminho xml
     public StageListener(
-            @Value("${spring.application.ui.title:Grafos App}") String applicationTitle,
-            @Value("classpath:/fxml/main.fxml") Resource fxml, // Caminho para o fxml, no caso em src/main/resources/fxml
+            @Value("${spring.application.ui.title:SOS - ROTAS DE EMERGÊNCIA}") String applicationTitle,
+            @Value("classpath:/view/main.fxml") Resource fxml, 
             ApplicationContext applicationContext) {
         this.applicationTitle = applicationTitle;
         this.fxml = fxml;
