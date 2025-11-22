@@ -1,5 +1,6 @@
 package com.pi.grafos.view;
 
+import com.pi.grafos.view.screens.TelaDashboard;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -31,14 +32,15 @@ public class StageListener implements ApplicationListener<StageReadyEvent> {
     public void onApplicationEvent(StageReadyEvent event) {
         Stage stage = event.getStage();
 
-        Scene scene = telaLogin.criarCena(stage);
+        // -- AQUI é onde eu seleciono a tela que quero chamar inicialmente
+        //Scene scene = telaLogin.criarCena(stage);
+        Scene scene = new TelaDashboard().criarCena(stage);
 
         stage.setScene(scene);
         stage.setTitle(this.applicationTitle);
 
-        // --- SOLUÇÃO 1: INICIAR MAXIMIZADO ---
-        stage.setMaximized(true); // Isso faz abrir ocupando a tela toda (com a barra do Windows)
-        // Se quiser tela cheia "de jogo" (sem o X de fechar), use: stage.setFullScreen(true);
+        stage.setMaximized(true); // Faz abrir ocupando a tela toda COM a barra do Windows
+        //stage.setFullScreen(true); // Se quiser tela cheia (F11, sem o X de fechar)
 
         // Define um tamanho mínimo para não quebrar o layout se o usuário tentar diminuir muito
         stage.setMinWidth(800);

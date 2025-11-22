@@ -20,13 +20,12 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import org.springframework.stereotype.Component;
 
-import static com.pi.grafos.view.Styles.AppStyles.*;
+import static com.pi.grafos.view.styles.AppStyles.*;
 
 
 @Component
 class TelaLogin {
 
-    // Aqui você injetaria seu serviço de usuário para validar o login
     // @Autowired
     // private UsuarioService usuarioService;
 
@@ -34,9 +33,9 @@ class TelaLogin {
 
         // --- 1. PAINEL PRINCIPAL (Alinhamento CENTRALIZADO) ---
         // Esse VBox vai cuidar de tudo que precisa ficar no meio (Logo, Título, Copyright)
-        VBox loginPanel = new VBox(20); // Aumentei um pouco o espaçamento geral
+        VBox loginPanel = new VBox(20);
         loginPanel.setPadding(new Insets(40));
-        loginPanel.setAlignment(Pos.CENTER); // <--- O SEGREDO: Tudo aqui fica no centro por padrão
+        loginPanel.setAlignment(Pos.CENTER); // Tudo aqui fica no centro por padrão
         loginPanel.setStyle("-fx-background-color: white");
 
         // --- BLOCO 1: LOGO E TÍTULO (Centralizados) ---
@@ -56,9 +55,9 @@ class TelaLogin {
         lblLogin.setTextFill(COR_AZUL_NOTURNO);
 
         // --- BLOCO 2: CONTAINER DO FORMULÁRIO (Alinhado à ESQUERDA) ---
-        // Criamos uma "caixa dentro da caixa" só para os inputs
+        // Criei uma "caixa dentro da caixa" só para os inputs
         VBox formContainer = new VBox(10); // Espaçamento menor entre label e campo
-        formContainer.setAlignment(Pos.CENTER_LEFT); // <--- O SEGREDO: Aqui dentro tudo fica à esquerda
+        formContainer.setAlignment(Pos.CENTER_LEFT); // Aqui dentro tudo fica à esquerda
         formContainer.setMaxWidth(Double.MAX_VALUE); // Garante que o container ocupe a largura toda
 
         Label lblEmail = new Label("Endereço de email");
@@ -84,7 +83,7 @@ class TelaLogin {
         lblMensagemErro.setTextFill(Color.RED);
         lblMensagemErro.setFont(FONTE_PEQUENA);
 
-        // Adicionamos os campos dentro deste container ESQUERDO
+        // Adicionando os campos dentro deste container ESQUERDO
         formContainer.getChildren().addAll(lblEmail, txtEmail, lblPassword, txtPassword, lblMensagemErro);
 
         // --- BLOCO 3: BOTÃO E RODAPÉ (Centralizados) ---
@@ -93,11 +92,11 @@ class TelaLogin {
         // Selecionando a fonte
         btnLogar.setFont(FONTE_BOTAO);
 
-        // 2. Ajuste de altura (Botão de 30px de fonte precisa ser mais alto que 45px)
+        // 2. Ajuste de altura
         btnLogar.setPrefHeight(45);
         btnLogar.setMaxWidth(Double.MAX_VALUE);
 
-        // 3. CSS (Removi o '-fx-font-size' daqui, pois já setamos no Java acima)
+        // 3. CSS
         btnLogar.setStyle(
                 "-fx-background-color: " + HEX_VERMELHO + "; " +
                         "-fx-text-fill: white; " +
@@ -106,20 +105,21 @@ class TelaLogin {
                         "-fx-border-radius: 4;"
         );
 
+        // 4. Espacador
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS); // Empurra o copyright para o fundo
 
         Label lblCopyright = new Label("© 2025 Vitalis Tech. Todos os direitos reservados.");
         lblCopyright.setFont(Font.font("Poppins", FontWeight.NORMAL, 10));
         lblCopyright.setTextFill(Color.web("#999999"));
-        // Como lblCopyright está no loginPanel (Pai), ele ficará centralizado automaticamente.
+        // Como lblCopyright está no loginPanel, ele ficará centralizado automaticamente.
 
         // --- MONTAGEM DO PAINEL ESQUERDO ---
-        // Observe a ordem: Logo(Centro), Título(Centro), Form(Esquerda), Botão, Spacer, Copy(Centro)
+        // Ordem: Logo(Centro), Título(Centro), Form(Esquerda), Botão, Spacer, Copy(Centro)
         loginPanel.getChildren().addAll(
                 logoView,
                 lblLogin,
-                formContainer, // Adicionamos a caixa de formulário aqui no meio
+                formContainer,
                 btnLogar,
                 spacer,
                 lblCopyright
