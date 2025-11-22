@@ -1,4 +1,4 @@
-package com.pi.grafos.view;
+package com.pi.grafos.view.screens;
 
 
 import javafx.geometry.Insets;
@@ -24,7 +24,7 @@ import static com.pi.grafos.view.styles.AppStyles.*;
 
 
 @Component
-class TelaLogin {
+public class TelaLogin {
 
     // @Autowired
     // private UsuarioService usuarioService;
@@ -60,13 +60,12 @@ class TelaLogin {
         formContainer.setAlignment(Pos.CENTER_LEFT); // Aqui dentro tudo fica à esquerda
         formContainer.setMaxWidth(Double.MAX_VALUE); // Garante que o container ocupe a largura toda
 
-        Label lblEmail = new Label("Endereço de email");
+        Label lblEmail = new Label("Nome de usuário");
         lblEmail.setFont(FONTE_SUBTITULO);
         lblEmail.setTextFill(COR_TEXTO_PRETO);
 
         TextField txtEmail = new TextField();
         txtEmail.setFont(FONTE_PEQUENA);
-        txtEmail.setPromptText("seu.email@exemplo.com");
         txtEmail.setPrefHeight(35);
         txtEmail.setStyle("-fx-border-color: #CBD5E1; -fx-border-radius: 4; -fx-background-radius: 4;");
 
