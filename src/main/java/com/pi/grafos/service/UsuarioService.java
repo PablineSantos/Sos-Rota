@@ -1,7 +1,11 @@
 package com.pi.grafos.service;
 
 import com.pi.grafos.model.Usuario;
+import com.pi.grafos.model.enums.AmbulanciaStatus;
+import com.pi.grafos.model.Ambulancia;
 import com.pi.grafos.repository.UsuarioRepository;
+import com.pi.grafos.repository.AmbulanciaRepository;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -9,25 +13,28 @@ import java.util.Optional;
 
 @Service
 public class UsuarioService {
-    
 
     private final UsuarioRepository repository;
-    private final PasswordEncoder passwordEncoder; // Classe para lidar com a criptografia da senha
+    private final PasswordEncoder passwordEncoder;
+    private final AmbulanciaRepository ambulanciaRepository;
 
-    public UsuarioService(UsuarioRepository repository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(
+            UsuarioRepository repository,
+            PasswordEncoder passwordEncoder,
+            AmbulanciaRepository ambulanciaRepository
+    ) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
+        this.ambulanciaRepository = ambulanciaRepository;
     }
 
     // Registro de novo usuário
     public void cadastrarUsuario(String usuario, String rawSenha) {
         Usuario user = new Usuario();
         user.setUsuario(usuario);
-        
-        // CRIPTOGRAFIA DA SENHA
-        String hash = passwordEncoder.encode(rawSenha); 
+        String hash = passwordEncoder.encode(rawSenha);
         user.setSenha(hash);
-
+        user.setTipoUsuario(1); // usuários comuns = tipo 1
         repository.save(user);
     }
 
@@ -37,9 +44,12 @@ public class UsuarioService {
 
         if (userOpt.isPresent()) {
             Usuario user = userOpt.get();
-            // Verificação se a senha é a mesma que a senha criptografada
             return passwordEncoder.matches(rawSenha, user.getSenha());
         }
         return false;
+    }
+
+    public boolean autenticarAmbulancia(String placa) {
+        return ambulanciaRepository.findByPlaca(placa).isPresent();
     }
 }

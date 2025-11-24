@@ -1,4 +1,4 @@
-package com.pi.grafos.view;
+package com.pi.grafos.controller;
 
 import javafx.stage.Stage;
 import org.springframework.context.ApplicationEvent;

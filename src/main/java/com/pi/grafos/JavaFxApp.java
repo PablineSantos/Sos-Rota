@@ -1,12 +1,12 @@
 package com.pi.grafos;
 
 import javafx.application.Application;
+import com.pi.grafos.controller.StageReadyEvent;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import com.pi.grafos.view.StageReadyEvent;
 
 public class JavaFxApp extends Application {
 
