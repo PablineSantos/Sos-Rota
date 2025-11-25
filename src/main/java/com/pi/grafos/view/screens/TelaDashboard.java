@@ -93,7 +93,7 @@ public class TelaDashboard {
 
         Button btnColaborador = criarBotaoMenu("Colaboradores", "⚕️");
         btnEquipe.setOnAction(e -> {
-            atualizarEstiloBotao(btnEquipe);
+            atualizarEstiloBotao(btnColaborador);
             setConteudoCentral(new FormularioEquipeView().criarView());
         });
 
