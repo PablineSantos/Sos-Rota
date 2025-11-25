@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.TextField?>
+
+
+<VBox xmlns="http://javafx.com/javafx/20"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.pi.grafos.controller.DashboardController"
+      spacing="10" style="-fx-padding: 20;"
+      alignment="CENTER"
+      prefWidth="400"
+      prefHeight="300"
+      fillWidth="false">
+
+    <Label fx:id="welcomeLabel" text="Seja bem-vindo!"/>
+
+    <Label text="Placa ambulância"/>
+    <TextField fx:id="placaAmbulancia" promptText="Digite a placa da ambulancia"/>
+
+    <Label text="Estatus"/>
+    <TextField fx:id="estatusAmbulancia" promptText="Digite o estatus da ambulância"/>
+
+    <Label text="tipo ambulância"/>
+    <TextField fx:id="tipoAmbulancia" promptText="Digite o tipo da ambulância"/>
+
+    <!-- Adicionar um drop down -->
+    <Label text="Local unidade(Número)"/>
+    <TextField fx:id="unidadeAmbulancia" promptText="Digite a unidade da ambulância"/>
+    <Button text="Cadastrar ambulância" fx:id="cadastrarButton" onAction="#cadastrarAmbulancia"/>
+
+</VBox>
