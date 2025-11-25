@@ -14,20 +14,18 @@ import lombok.Data;
 import lombok.ToString;
 
 @Entity
-@Table(name = "bairro")
+@Table(name = "tipo_ocorrencia")
 @Data
-public class Bairro {
+public class TipoOcorrencia {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idBairro;
+    private Long idTipoOcorrencia;
 
-    private String nomeBairro;
+    private String nomeTipoOcorrencia;
 
-    // Comentei porque estava dando ERRO DE CONFLITO
-    //@OneToMany(mappedBy = "local", cascade = CascadeType.ALL)
-    //@ToString.Exclude
-    //private List<Ocorrencia> ocorrencias = new ArrayList<>();
-    
+    @OneToMany(mappedBy = "tipoOcorrencia", cascade = CascadeType.ALL)
+    @ToString.Exclude
+    private List<Ocorrencia> ocorrencias = new ArrayList<>();
 
 }

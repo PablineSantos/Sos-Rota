@@ -33,7 +33,7 @@ public class UsuarioService {
         user.setUsuario(usuario);
         String hash = passwordEncoder.encode(rawSenha);
         user.setSenha(hash);
-        user.setTipoUsuario(1);
+        //user.setTipoUsuario(1);
         repository.save(user);
     }
 

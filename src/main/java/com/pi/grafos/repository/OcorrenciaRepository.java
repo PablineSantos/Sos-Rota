@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import com.pi.grafos.model.Localizacao;
 import com.pi.grafos.model.Ocorrencia;
-import com.pi.grafos.repository.TipoOcorrencia;
+import com.pi.grafos.model.TipoOcorrencia;
 
 @Repository
 public interface OcorrenciaRepository {
