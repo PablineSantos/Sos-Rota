@@ -1,7 +1,7 @@
 package com.pi.grafos.controller;
 
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
+import com.pi.grafos.view.screens.TelaDashboard;
+import com.pi.grafos.view.screens.TelaLogin;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,36 +17,34 @@ import java.io.IOException;
 public class StageListener implements ApplicationListener<StageReadyEvent> {
 
     private final String applicationTitle;
-    private final Resource fxml;
-    private final ApplicationContext applicationContext;
+    private final TelaLogin telaLogin;
 
-    // Define o titulo e o caminho xml
+    // Construtor com Injeção de Dependência automática do Spring
     public StageListener(
-            @Value("${spring.application.ui.title:SOS - ROTAS DE EMERGÊNCIA}") String applicationTitle,
-            @Value("classpath:/view/main.fxml") Resource fxml, 
-            ApplicationContext applicationContext) {
+            @Value("${spring.application.ui.title:SOS-Rota - Gestão}") String applicationTitle,
+            TelaLogin telaLogin) { // O Spring traz a classe pra cá
         this.applicationTitle = applicationTitle;
-        this.fxml = fxml;
-        this.applicationContext = applicationContext;
+        this.telaLogin = telaLogin;
     }
 
     @Override
-    public void onApplicationEvent(@NonNull StageReadyEvent event) {
-        try {
-            Stage stage = event.getStage();
-            var url = fxml.getURL();
-            FXMLLoader fxmlLoader = new FXMLLoader(url);
-            
-            // Permite que o spring adicione dependencias aos controllers
-            fxmlLoader.setControllerFactory(applicationContext::getBean); 
-            
-            Parent root = fxmlLoader.load();
-            Scene scene = new Scene(root, 800, 600);
-            stage.setScene(scene);
-            stage.setTitle(applicationTitle);
-            stage.show();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load FXML", e);
-        }
+    public void onApplicationEvent(StageReadyEvent event) {
+        Stage stage = event.getStage();
+
+        // -- AQUI é onde eu seleciono a tela que quero chamar inicialmente
+        //Scene scene = telaLogin.criarCena(stage);
+        Scene scene = new TelaDashboard().criarCena(stage);
+
+        stage.setScene(scene);
+        stage.setTitle(this.applicationTitle);
+
+        stage.setMaximized(true); // Faz abrir ocupando a tela toda COM a barra do Windows
+        //stage.setFullScreen(true); // Se quiser tela cheia (F11, sem o X de fechar)
+
+        // Define um tamanho mínimo para não quebrar o layout se o usuário tentar diminuir muito
+        stage.setMinWidth(800);
+        stage.setMinHeight(600);
+
+        stage.show();
     }
 }

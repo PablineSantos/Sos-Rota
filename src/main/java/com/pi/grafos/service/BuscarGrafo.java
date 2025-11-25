@@ -64,7 +64,7 @@ public class BuscarGrafo {
 	            int prox = caminho.get(i + 1);
 
 	            for (Aresta a : g.getCaminho().get(atual)) {
-	                if (a.destino == prox) {
+	                if (a.getDestino() == prox) {
 	                    soma += a.getDistancia();
 	                    break;
 	                }

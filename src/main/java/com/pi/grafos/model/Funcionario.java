@@ -5,11 +5,13 @@ import com.pi.grafos.model.enums.Cargos;
 import jakarta.persistence.*;
 import lombok.Data;
 
+
 @Entity
-@Table(
-    name = "funcionarios",
+@Table(name = "funcionarios",
+
+    // Forma de rejeitar membros de equipe com funções duplicadas
     uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"equipe_id", "cargo"})
+        @UniqueConstraint(columnNames = {"equipe_id", "funcao"})
     }
 )
 @Data
@@ -26,7 +28,7 @@ public class Funcionario {
     private Cargos cargo;
 
     @ManyToOne
-    @JoinColumn(name = "equipe_id")
+    @JoinColumn(name = "idEquipe")
     private Equipe equipe;
 
     @ManyToOne

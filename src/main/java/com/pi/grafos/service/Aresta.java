@@ -2,10 +2,12 @@ package com.pi.grafos.service;
 
 import org.springframework.stereotype.Service;
 
+// Comentei se não o programa não roda
+// Essa classe não precisa ser um "@Service", pois ela é apenas um molde de dados (minha opinião)
 //@Service
 public class Aresta {
 
-	int destino;
+	private int destino;
 	private double distancia;
 
 	public Aresta(int destino, double distancia) {

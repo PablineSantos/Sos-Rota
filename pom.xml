@@ -8,11 +8,11 @@
 		<version>3.5.7</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.example</groupId>
-	<artifactId>sos-rota-emergency-dispatch</artifactId>
+	<groupId>com.pi</groupId>
+	<artifactId>grafos</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>sos-rota-emergency-dispatch</name>
-	<description>Demo project for Spring Boot</description>
+	<name>grafos</name>
+	<description>Projeto Cidade Grafos</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -54,7 +54,6 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -71,13 +70,7 @@
 			<version>21</version>
 		</dependency>
 
-
-   <dependency>
-     <groupId>org.icroco</groupId>
-     <artifactId>spring-boot-javafx-starter</artifactId>
-     <version>1.0.4</version>
-   </dependency>
- </dependencies>
+	</dependencies>
 
 	<build>
 		<plugins>

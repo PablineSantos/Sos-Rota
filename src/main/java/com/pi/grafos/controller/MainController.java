@@ -17,7 +17,7 @@ public class MainController {
 
     // Dependencia de autenticação do usuário
     private final UsuarioService authService;
-    
+
     @FXML
     private Button cadastrarButton;
 
