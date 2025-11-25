@@ -1,7 +1,6 @@
 package com.pi.grafos.service;
 
 import com.pi.grafos.model.Usuario;
-import com.pi.grafos.model.enums.AmbulanciaStatus;
 import com.pi.grafos.model.Ambulancia;
 import com.pi.grafos.repository.UsuarioRepository;
 import com.pi.grafos.repository.AmbulanciaRepository;
@@ -34,22 +33,20 @@ public class UsuarioService {
         user.setUsuario(usuario);
         String hash = passwordEncoder.encode(rawSenha);
         user.setSenha(hash);
-        user.setTipoUsuario(1); // usuários comuns = tipo 1
+        user.setTipoUsuario(1);
         repository.save(user);
     }
 
-    // Login de usuário
-    public boolean autenticar(String usuario, String rawSenha) {
-        Optional<Usuario> userOpt = repository.findByUsuario(usuario);
+public boolean autenticar(String usuario, String rawSenha) {
+    Optional<Usuario> userOpt = repository.findByUsuario(usuario);
 
-        if (userOpt.isPresent()) {
-            Usuario user = userOpt.get();
-            return passwordEncoder.matches(rawSenha, user.getSenha());
-        }
-        return false;
+    if (userOpt.isPresent()) {
+        Usuario user = userOpt.get();
+        return passwordEncoder.matches(rawSenha, user.getSenha());
     }
+    return false;
+}
 
-    public boolean autenticarAmbulancia(String placa) {
-        return ambulanciaRepository.findByPlaca(placa).isPresent();
-    }
+
+
 }
