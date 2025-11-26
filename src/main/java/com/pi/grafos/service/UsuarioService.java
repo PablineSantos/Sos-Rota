@@ -1,9 +1,7 @@
 package com.pi.grafos.service;
 
 import com.pi.grafos.model.Usuario;
-import com.pi.grafos.model.Ambulancia;
 import com.pi.grafos.repository.UsuarioRepository;
-import com.pi.grafos.repository.AmbulanciaRepository;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,16 +13,13 @@ public class UsuarioService {
 
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
-    private final AmbulanciaRepository ambulanciaRepository;
 
     public UsuarioService(
             UsuarioRepository repository,
-            PasswordEncoder passwordEncoder,
-            AmbulanciaRepository ambulanciaRepository
+            PasswordEncoder passwordEncoder
     ) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
-        this.ambulanciaRepository = ambulanciaRepository;
     }
 
     // Registro de novo usuário

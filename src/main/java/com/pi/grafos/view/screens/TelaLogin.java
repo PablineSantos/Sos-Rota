@@ -1,32 +1,41 @@
 package com.pi.grafos.view.screens;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.*; // Importei Hyperlink e outros controles
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.pi.grafos.controller.MainController;
+import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
+import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_PRETO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_BOTAO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_PEQUENA;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_SUBTITULO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_TITULO; // Usar PasswordField para senhas
+import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
+
+import javafx.geometry.Insets; // Para carregar a imagem
+import javafx.geometry.Pos; // Para exibir a imagem
+import javafx.scene.Scene; // Para dividir em duas colunas (Login e Imagem)
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField; // Para empilhar elementos na coluna de login
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
-import static com.pi.grafos.view.styles.AppStyles.*;
 
 @Component
 public class TelaLogin {
 
-    // Injetamos a tela de Cadastro
     @Autowired
-    @Lazy // Lazy é essencial aqui para o Spring carregar sob demanda e não travar no boot
-    private TelaCadastro telaCadastro;
-
-    // @Autowired
-    // private UsuarioService usuarioService;
+    private MainController controller;
 
     public Scene criarCena(Stage stage) {
 
@@ -84,31 +93,36 @@ public class TelaLogin {
         btnLogar.setFont(FONTE_BOTAO);
         btnLogar.setPrefHeight(45);
         btnLogar.setMaxWidth(Double.MAX_VALUE);
+        btnLogar.setPrefWidth(50); 
         btnLogar.setStyle(
                 "-fx-background-color: " + HEX_VERMELHO + "; " +
                         "-fx-text-fill: white; " +
-                        "-fx-background-radius: 4; " +
-                        "-fx-cursor: hand;"
+                        "-fx-background-radius: 40; " +
+                        "-fx-cursor: hand;" +
+                        "-fx-border-radius: 40;"
         );
 
-        // --- HIPERLINK PARA CADASTRO ---
-        Hyperlink linkCadastro = new Hyperlink("Não tem uma conta? Registre-se agora");
-        linkCadastro.setFont(FONTE_PEQUENA);
-        // Usando a cor vermelha ou azul para destacar, ou cinza para ser sutil.
-        // Vou usar o vermelho da marca para combinar com a imagem de referência do SeedProd
-        linkCadastro.setTextFill(COR_VERMELHO_RESGATE);
-        linkCadastro.setBorder(Border.EMPTY);
-        // Remove o sublinhado padrão e adiciona só no hover se quiser, ou deixa fixo
-        linkCadastro.setStyle("-fx-underline: false; -fx-cursor: hand;");
-
-        linkCadastro.setOnMouseEntered(e -> linkCadastro.setStyle("-fx-underline: true; -fx-cursor: hand;"));
-        linkCadastro.setOnMouseExited(e -> linkCadastro.setStyle("-fx-underline: false; -fx-cursor: hand;"));
+        // Selecionando a fonte
+        // 2. Ajuste de altura
+        // 3. CSS
+        Button btnCadastrar = new Button("Cadastrar");
+        btnCadastrar.setFont(FONTE_BOTAO);
+        btnCadastrar.setPrefHeight(45);
+        btnCadastrar.setMaxWidth(Double.MAX_VALUE);
+        btnCadastrar.setPrefWidth(50); 
+        btnCadastrar.setStyle(
+                "-fx-background-color: " + HEX_VERMELHO + "; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-background-radius: 40; " +
+                        "-fx-cursor: hand;" +
+                        "-fx-border-radius: 40;"
+        );
 
         // AÇÃO DE NAVEGAÇÃO
-        linkCadastro.setOnAction(e -> {
+        //linkCadastro.setOnAction(e -> {
             // Troca a cena atual pela cena de cadastro
-            stage.setScene(telaCadastro.criarCena(stage));
-        });
+        //    stage.setScene(telaCadastro.criarCena(stage));
+        //});
 
         // Espaçador
         Region spacer = new Region();
@@ -123,8 +137,9 @@ public class TelaLogin {
                 logoView,
                 lblLogin,
                 formContainer,
+                btnCadastrar,
                 btnLogar,
-                linkCadastro, // Adicionado aqui!
+                //linkCadastro, // Adicionado aqui!
                 spacer,
                 lblCopyright
         );
@@ -148,7 +163,7 @@ public class TelaLogin {
             backgroundRegion.setStyle("-fx-background-color: #1E293B;");
         }
 
-        // --- RAIZ ---
+        // --- 3. PAINEL PRINCIPAL: HBox (Login + Imagem) ---
         HBox root = new HBox();
         root.getChildren().addAll(loginPanel, backgroundRegion);
         HBox.setHgrow(loginPanel, Priority.ALWAYS);
@@ -156,15 +171,37 @@ public class TelaLogin {
         loginPanel.setMaxWidth(500);
         loginPanel.setMinWidth(400);
 
-        // --- Lógica do Botão (Mock) ---
-        btnLogar.setOnAction(event -> {
-            String email = txtEmail.getText();
-            String senha = txtPassword.getText();
-            if (email.equals("teste@email.com") && senha.equals("123")) {
-                lblMensagemErro.setText("Sucesso!");
+        
+
+        btnCadastrar.setOnAction(event -> {
+            String nomeUsuario = txtEmail.getText();
+            String senhaUsuario = txtPassword.getText();
+
+            if (!(nomeUsuario.equals("") || senhaUsuario.equals(""))) {
+                lblMensagemErro.setText("Validando Cadastro");
                 lblMensagemErro.setTextFill(Color.GREEN);
+
+                controller.cadastrarUsuario(nomeUsuario, senhaUsuario);
+                
             } else {
-                lblMensagemErro.setText("Dados inválidos.");
+                lblMensagemErro.setText("Verifique os dados cadastrados ou faça cadastro.");
+                lblMensagemErro.setTextFill(Color.RED);
+            }
+        });
+
+        btnLogar.setOnAction(event -> {
+            String nomeUsuario = txtEmail.getText();
+            String senhaUsuario = txtPassword.getText();
+
+            if (!(nomeUsuario.equals("") || senhaUsuario.equals(""))) {
+                lblMensagemErro.setText("Validando Cadastro");
+                lblMensagemErro.setTextFill(Color.GREEN);
+
+                controller.logar(nomeUsuario, senhaUsuario);
+                lblMensagemErro.setText("Usuário logado, redirecionando!.");
+                
+            } else {
+                lblMensagemErro.setText("Verifique os dados cadastrados ou faça cadastro.");
                 lblMensagemErro.setTextFill(Color.RED);
             }
         });

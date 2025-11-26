@@ -1,17 +1,13 @@
 package com.pi.grafos.controller;
 
-import com.pi.grafos.view.screens.TelaDashboard;
-import com.pi.grafos.view.screens.TelaLogin;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
-import org.springframework.core.io.Resource;
-import org.springframework.lang.NonNull;
 
-import java.io.IOException;
+import com.pi.grafos.view.screens.TelaLogin;
+
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
 @Component
 public class StageListener implements ApplicationListener<StageReadyEvent> {

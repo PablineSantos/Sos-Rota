@@ -1,4 +1,4 @@
-package com.pi.grafos.service;
+package com.pi.grafos.service.grafo;
 
 import org.springframework.stereotype.Service;
 
