@@ -1,4 +1,4 @@
-package com.pi.grafos.service;
+package com.pi.grafos.service.grafo;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

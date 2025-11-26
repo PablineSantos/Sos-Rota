@@ -1,23 +1,9 @@
 package com.pi.grafos.controller;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.stage.Stage;
-
-import javafx.fxml.FXML;
-import javafx.scene.Parent;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
 
-import org.springframework.stereotype.Component;
-
-import com.pi.grafos.service.UsuarioService;
 public class DashboardController {
 
     @FXML

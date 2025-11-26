@@ -11,7 +11,7 @@ import com.pi.grafos.model.Cidade;
 @Repository
 public interface CidadeRepository extends JpaRepository<Cidade, Long>{
 
-    Optional<Cidade> findById(Long id);
+    Optional<Cidade> findByIdCidade(Long id);
     
     List<Cidade> findByNomeCidadeIgnoreCaseLike(String nome);
 

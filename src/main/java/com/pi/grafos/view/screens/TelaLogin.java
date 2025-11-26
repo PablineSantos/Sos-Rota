@@ -1,33 +1,42 @@
 package com.pi.grafos.view.screens;
 
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.pi.grafos.controller.MainController;
+import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
+import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_PRETO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_BOTAO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_PEQUENA;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_SUBTITULO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_TITULO; // Usar PasswordField para senhas
+import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
+
+import javafx.geometry.Insets; // Para carregar a imagem
+import javafx.geometry.Pos; // Para exibir a imagem
+import javafx.scene.Scene; // Para dividir em duas colunas (Login e Imagem)
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField; // Usar PasswordField para senhas
+import javafx.scene.control.PasswordField; // Para empilhar elementos na coluna de login
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image; // Para carregar a imagem
-import javafx.scene.image.ImageView; // Para exibir a imagem
-import javafx.scene.layout.HBox; // Para dividir em duas colunas (Login e Imagem)
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox; // Para empilhar elementos na coluna de login
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import org.springframework.stereotype.Component;
-
-import static com.pi.grafos.view.styles.AppStyles.*;
 
 
 @Component
 public class TelaLogin {
 
-    // @Autowired
-    // private UsuarioService usuarioService;
+    @Autowired
+    private MainController controller;
 
     public Scene criarCena(Stage stage) {
 
@@ -88,20 +97,32 @@ public class TelaLogin {
         // --- BLOCO 3: BOTÃO E RODAPÉ (Centralizados) ---
 
         Button btnLogar = new Button("Log In");
-        // Selecionando a fonte
         btnLogar.setFont(FONTE_BOTAO);
-
-        // 2. Ajuste de altura
         btnLogar.setPrefHeight(45);
         btnLogar.setMaxWidth(Double.MAX_VALUE);
-
-        // 3. CSS
+        btnLogar.setPrefWidth(50); 
         btnLogar.setStyle(
                 "-fx-background-color: " + HEX_VERMELHO + "; " +
                         "-fx-text-fill: white; " +
-                        "-fx-background-radius: 4; " +
+                        "-fx-background-radius: 40; " +
                         "-fx-cursor: hand;" +
-                        "-fx-border-radius: 4;"
+                        "-fx-border-radius: 40;"
+        );
+
+        // Selecionando a fonte
+        // 2. Ajuste de altura
+        // 3. CSS
+        Button btnCadastrar = new Button("Cadastrar");
+        btnCadastrar.setFont(FONTE_BOTAO);
+        btnCadastrar.setPrefHeight(45);
+        btnCadastrar.setMaxWidth(Double.MAX_VALUE);
+        btnCadastrar.setPrefWidth(50); 
+        btnCadastrar.setStyle(
+                "-fx-background-color: " + HEX_VERMELHO + "; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-background-radius: 40; " +
+                        "-fx-cursor: hand;" +
+                        "-fx-border-radius: 40;"
         );
 
         // 4. Espacador
@@ -119,6 +140,7 @@ public class TelaLogin {
                 logoView,
                 lblLogin,
                 formContainer,
+                btnCadastrar,
                 btnLogar,
                 spacer,
                 lblCopyright
@@ -144,12 +166,6 @@ public class TelaLogin {
             backgroundRegion.setStyle("-fx-background-color: #1E293B;");
         }
 
-
-
-
-
-
-
         // --- 3. PAINEL PRINCIPAL: HBox (Login + Imagem) ---
         HBox root = new HBox();
         root.getChildren().addAll(loginPanel, backgroundRegion);
@@ -161,15 +177,37 @@ public class TelaLogin {
         loginPanel.setMaxWidth(500);
         loginPanel.setMinWidth(400);
 
-        // --- Lógica do Botão ---
-        btnLogar.setOnAction(event -> {
-            String email = txtEmail.getText();
-            String senha = txtPassword.getText();
-            if (email.equals("teste@email.com") && senha.equals("123")) {
-                lblMensagemErro.setText("Sucesso!");
+        
+
+        btnCadastrar.setOnAction(event -> {
+            String nomeUsuario = txtEmail.getText();
+            String senhaUsuario = txtPassword.getText();
+
+            if (!(nomeUsuario.equals("") || senhaUsuario.equals(""))) {
+                lblMensagemErro.setText("Validando Cadastro");
                 lblMensagemErro.setTextFill(Color.GREEN);
+
+                controller.cadastrarUsuario(nomeUsuario, senhaUsuario);
+                
             } else {
-                lblMensagemErro.setText("Dados inválidos.");
+                lblMensagemErro.setText("Verifique os dados cadastrados ou faça cadastro.");
+                lblMensagemErro.setTextFill(Color.RED);
+            }
+        });
+
+        btnLogar.setOnAction(event -> {
+            String nomeUsuario = txtEmail.getText();
+            String senhaUsuario = txtPassword.getText();
+
+            if (!(nomeUsuario.equals("") || senhaUsuario.equals(""))) {
+                lblMensagemErro.setText("Validando Cadastro");
+                lblMensagemErro.setTextFill(Color.GREEN);
+
+                controller.logar(nomeUsuario, senhaUsuario);
+                lblMensagemErro.setText("Usuário logado, redirecionando!.");
+                
+            } else {
+                lblMensagemErro.setText("Verifique os dados cadastrados ou faça cadastro.");
                 lblMensagemErro.setTextFill(Color.RED);
             }
         });

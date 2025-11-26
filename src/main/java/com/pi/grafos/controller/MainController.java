@@ -1,16 +1,17 @@
 package com.pi.grafos.controller;
 
+import org.springframework.stereotype.Component;
+
+import com.pi.grafos.service.UsuarioService;
+
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import org.springframework.stereotype.Component;
-
-import com.pi.grafos.service.UsuarioService;
 
 @Component
 public class MainController {
@@ -33,10 +34,10 @@ public class MainController {
     }
 
     @FXML
-    public void cadastrarUsuario() {
+    public void cadastrarUsuario(String NomeUsuario, String SenhaUsuario) {
         try {
-            String NomeUsuario = nomeUsuario.getText();
-            String SenhaUsuario = senhaUsuario.getText();
+
+            System.out.println("Tentando cadastrar usuário: " + NomeUsuario);
 
             if((NomeUsuario.isEmpty() || SenhaUsuario.isEmpty()) == true){
                 System.err.println("Erro de cadastro, verifique os campos");
@@ -52,29 +53,15 @@ public class MainController {
             System.err.println("Usuário Cadastrado, redirecionando!");
             System.out.println("Usuário cadastrado: " + NomeUsuario);
             
-            FXMLLoader dashboard = new FXMLLoader(getClass().getResource(("/view/dashboard.fxml")));
-            Parent root = dashboard.load();
-
-            Stage stage = (Stage) cadastrarButton.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.setTitle("Dashboard");
-            stage.show();
-
-            //Método de passar o nome para frente
-            DashboardController dashboardController = dashboard.getController();
-            dashboardController.setUsername(NomeUsuario);
-
 
         } catch (Exception e) {
-            System.err.println("Erro ao carregar a tela do Dashboard!");
+            System.err.println("Erro em algo");
             e.printStackTrace();
         }
     }
 
-    public void logar(){
+    public void logar(String NomeUsuario, String SenhaUsuario){
         try {
-            String NomeUsuario = nomeUsuario.getText();
-            String SenhaUsuario = senhaUsuario.getText();
 
             if((NomeUsuario.isEmpty() || SenhaUsuario.isEmpty()) == true){
                 System.err.println("Erro de cadastro, verifique os campos");

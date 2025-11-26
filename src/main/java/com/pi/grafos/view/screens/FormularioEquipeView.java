@@ -1,15 +1,27 @@
 package com.pi.grafos.view.screens;
 
+import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
+import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_CLARO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_BOTAO2;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_CORPO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_SUBTITULO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_TITULO;
+import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
+
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
-
-import static com.pi.grafos.view.styles.AppStyles.*;
 
 public class FormularioEquipeView {
 
