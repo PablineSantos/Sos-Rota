@@ -1,64 +1,58 @@
 package com.pi.grafos.view.screens;
 
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField; // Usar PasswordField para senhas
-import javafx.scene.control.TextField;
-import javafx.scene.image.Image; // Para carregar a imagem
-import javafx.scene.image.ImageView; // Para exibir a imagem
-import javafx.scene.layout.HBox; // Para dividir em duas colunas (Login e Imagem)
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox; // Para empilhar elementos na coluna de login
+import javafx.scene.control.*; // Importei Hyperlink e outros controles
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import static com.pi.grafos.view.styles.AppStyles.*;
 
-
 @Component
 public class TelaLogin {
+
+    // Injetamos a tela de Cadastro
+    @Autowired
+    @Lazy // Lazy é essencial aqui para o Spring carregar sob demanda e não travar no boot
+    private TelaCadastro telaCadastro;
 
     // @Autowired
     // private UsuarioService usuarioService;
 
     public Scene criarCena(Stage stage) {
 
-        // --- 1. PAINEL PRINCIPAL (Alinhamento CENTRALIZADO) ---
-        // Esse VBox vai cuidar de tudo que precisa ficar no meio (Logo, Título, Copyright)
+        // --- 1. PAINEL PRINCIPAL ---
         VBox loginPanel = new VBox(20);
         loginPanel.setPadding(new Insets(40));
-        loginPanel.setAlignment(Pos.CENTER); // Tudo aqui fica no centro por padrão
+        loginPanel.setAlignment(Pos.CENTER);
         loginPanel.setStyle("-fx-background-color: white");
 
-        // --- BLOCO 1: LOGO E TÍTULO (Centralizados) ---
-
-        // Logo
+        // --- BLOCO 1: LOGO E TÍTULO ---
         ImageView logoView = new ImageView();
         try {
             Image logoImage = new Image(getClass().getResourceAsStream("/images/logo.png"));
             logoView.setImage(logoImage);
             logoView.setFitWidth(150);
             logoView.setPreserveRatio(true);
-        } catch (Exception e) { /* Trata erro se precisar */ }
+        } catch (Exception e) { }
 
-        // Título "Login"
         Label lblLogin = new Label("Login");
         lblLogin.setFont(FONTE_TITULO);
         lblLogin.setTextFill(COR_AZUL_NOTURNO);
 
-        // --- BLOCO 2: CONTAINER DO FORMULÁRIO (Alinhado à ESQUERDA) ---
-        // Criei uma "caixa dentro da caixa" só para os inputs
-        VBox formContainer = new VBox(10); // Espaçamento menor entre label e campo
-        formContainer.setAlignment(Pos.CENTER_LEFT); // Aqui dentro tudo fica à esquerda
-        formContainer.setMaxWidth(Double.MAX_VALUE); // Garante que o container ocupe a largura toda
+        // --- BLOCO 2: FORMULÁRIO ---
+        VBox formContainer = new VBox(10);
+        formContainer.setAlignment(Pos.CENTER_LEFT);
+        formContainer.setMaxWidth(Double.MAX_VALUE);
 
         Label lblEmail = new Label("Nome de usuário");
         lblEmail.setFont(FONTE_SUBTITULO);
@@ -82,53 +76,63 @@ public class TelaLogin {
         lblMensagemErro.setTextFill(Color.RED);
         lblMensagemErro.setFont(FONTE_PEQUENA);
 
-        // Adicionando os campos dentro deste container ESQUERDO
         formContainer.getChildren().addAll(lblEmail, txtEmail, lblPassword, txtPassword, lblMensagemErro);
 
-        // --- BLOCO 3: BOTÃO E RODAPÉ (Centralizados) ---
+        // --- BLOCO 3: AÇÕES ---
 
         Button btnLogar = new Button("Log In");
-        // Selecionando a fonte
         btnLogar.setFont(FONTE_BOTAO);
-
-        // 2. Ajuste de altura
         btnLogar.setPrefHeight(45);
         btnLogar.setMaxWidth(Double.MAX_VALUE);
-
-        // 3. CSS
         btnLogar.setStyle(
                 "-fx-background-color: " + HEX_VERMELHO + "; " +
                         "-fx-text-fill: white; " +
                         "-fx-background-radius: 4; " +
-                        "-fx-cursor: hand;" +
-                        "-fx-border-radius: 4;"
+                        "-fx-cursor: hand;"
         );
 
-        // 4. Espacador
+        // --- HIPERLINK PARA CADASTRO ---
+        Hyperlink linkCadastro = new Hyperlink("Não tem uma conta? Registre-se agora");
+        linkCadastro.setFont(FONTE_PEQUENA);
+        // Usando a cor vermelha ou azul para destacar, ou cinza para ser sutil.
+        // Vou usar o vermelho da marca para combinar com a imagem de referência do SeedProd
+        linkCadastro.setTextFill(COR_VERMELHO_RESGATE);
+        linkCadastro.setBorder(Border.EMPTY);
+        // Remove o sublinhado padrão e adiciona só no hover se quiser, ou deixa fixo
+        linkCadastro.setStyle("-fx-underline: false; -fx-cursor: hand;");
+
+        linkCadastro.setOnMouseEntered(e -> linkCadastro.setStyle("-fx-underline: true; -fx-cursor: hand;"));
+        linkCadastro.setOnMouseExited(e -> linkCadastro.setStyle("-fx-underline: false; -fx-cursor: hand;"));
+
+        // AÇÃO DE NAVEGAÇÃO
+        linkCadastro.setOnAction(e -> {
+            // Troca a cena atual pela cena de cadastro
+            stage.setScene(telaCadastro.criarCena(stage));
+        });
+
+        // Espaçador
         Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS); // Empurra o copyright para o fundo
+        VBox.setVgrow(spacer, Priority.ALWAYS);
 
         Label lblCopyright = new Label("© 2025 Vitalis Tech. Todos os direitos reservados.");
         lblCopyright.setFont(Font.font("Poppins", FontWeight.NORMAL, 10));
         lblCopyright.setTextFill(Color.web("#999999"));
-        // Como lblCopyright está no loginPanel, ele ficará centralizado automaticamente.
 
-        // --- MONTAGEM DO PAINEL ESQUERDO ---
-        // Ordem: Logo(Centro), Título(Centro), Form(Esquerda), Botão, Spacer, Copy(Centro)
+        // --- MONTAGEM ---
         loginPanel.getChildren().addAll(
                 logoView,
                 lblLogin,
                 formContainer,
                 btnLogar,
+                linkCadastro, // Adicionado aqui!
                 spacer,
                 lblCopyright
         );
 
-        // --- LADO DIREITO (Imagem Blindada e Proporcional) ---
+        // --- LADO DIREITO (Imagem) ---
         Region backgroundRegion = new Region();
         try {
             Image imgBackground = new Image(getClass().getResourceAsStream("/images/ambulancias.jpeg"));
-            //Image imgBackground = new Image(getClass().getResourceAsStream("/images/cidade2.png"));
             javafx.scene.layout.BackgroundSize bgSize = new javafx.scene.layout.BackgroundSize(
                     1.0, 1.0, true, true, false, true
             );
@@ -144,24 +148,15 @@ public class TelaLogin {
             backgroundRegion.setStyle("-fx-background-color: #1E293B;");
         }
 
-
-
-
-
-
-
-        // --- 3. PAINEL PRINCIPAL: HBox (Login + Imagem) ---
+        // --- RAIZ ---
         HBox root = new HBox();
         root.getChildren().addAll(loginPanel, backgroundRegion);
-
         HBox.setHgrow(loginPanel, Priority.ALWAYS);
         HBox.setHgrow(backgroundRegion, Priority.ALWAYS);
-
-        // Restrições de largura do painel de login
         loginPanel.setMaxWidth(500);
         loginPanel.setMinWidth(400);
 
-        // --- Lógica do Botão ---
+        // --- Lógica do Botão (Mock) ---
         btnLogar.setOnAction(event -> {
             String email = txtEmail.getText();
             String senha = txtPassword.getText();
