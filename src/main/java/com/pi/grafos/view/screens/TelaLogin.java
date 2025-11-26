@@ -119,10 +119,10 @@ public class TelaLogin {
         );
 
         // AÇÃO DE NAVEGAÇÃO
-        linkCadastro.setOnAction(e -> {
+        //linkCadastro.setOnAction(e -> {
             // Troca a cena atual pela cena de cadastro
-            stage.setScene(telaCadastro.criarCena(stage));
-        });
+        //    stage.setScene(telaCadastro.criarCena(stage));
+        //});
 
         // Espaçador
         Region spacer = new Region();
@@ -139,7 +139,7 @@ public class TelaLogin {
                 formContainer,
                 btnCadastrar,
                 btnLogar,
-                linkCadastro, // Adicionado aqui!
+                //linkCadastro, // Adicionado aqui!
                 spacer,
                 lblCopyright
         );
