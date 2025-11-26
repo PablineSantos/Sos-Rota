@@ -32,8 +32,8 @@ public class StageListener implements ApplicationListener<StageReadyEvent> {
         Stage stage = event.getStage();
 
         // -- AQUI é onde eu seleciono a tela que quero chamar inicialmente
-        Scene scene = telaLogin.criarCena(stage);
-        //Scene scene = new TelaDashboard().criarCena(stage);
+        //Scene scene = telaLogin.criarCena(stage);
+        Scene scene = new TelaDashboard().criarCena(stage);
 
         stage.setScene(scene);
         stage.setTitle(this.applicationTitle);
