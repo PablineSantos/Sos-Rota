@@ -84,18 +84,25 @@ public class TelaDashboard {
             setConteudoCentral(criarPlaceholderFormulario("Gestão de Frota"));
         });
 
-
         Button btnEquipe = criarBotaoMenu("Equipe", "👨‍⚕️");
         btnEquipe.setOnAction(e -> {
             atualizarEstiloBotao(btnEquipe);
             setConteudoCentral(new FormularioEquipeView().criarView());
         });
 
-        Button btnColaborador = criarBotaoMenu("Colaboradores", "⚕️");
-        btnEquipe.setOnAction(e -> {
+        Button btnColaborador = criarBotaoMenu("Colaboradores", "⚕");
+        btnColaborador.setOnAction(e -> {
             atualizarEstiloBotao(btnColaborador);
-            setConteudoCentral(new FormularioEquipeView().criarView());
+            setConteudoCentral(new GestaoFuncionariosView().criarView());
         });
+
+        Button btnRelatorio = criarBotaoMenu("Relatórios", "");
+        btnRelatorio.setOnAction(e -> {
+            atualizarEstiloBotao(btnRelatorio);
+            setConteudoCentral(criarPlaceholderFormulario("Relatório"));
+        });
+
+
 
         // Espacador
         Region spacerMenu = new Region();
@@ -107,7 +114,7 @@ public class TelaDashboard {
             stage.close();
         });
 
-        sidebar.getChildren().addAll(logoView, lblTituloPainel, btnDashboard, btnNovaOcorrencia, btnFrota, btnEquipe, spacerMenu, btnSair);
+        sidebar.getChildren().addAll(logoView, lblTituloPainel, btnDashboard, btnNovaOcorrencia, btnFrota, btnEquipe, btnColaborador, btnRelatorio, spacerMenu, btnSair);
 
 
         // =============================================================================================
