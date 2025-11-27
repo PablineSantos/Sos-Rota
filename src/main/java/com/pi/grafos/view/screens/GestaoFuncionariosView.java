@@ -7,6 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,33 +16,24 @@ import static com.pi.grafos.view.styles.AppStyles.*;
 
 public class GestaoFuncionariosView {
 
-    // Área onde o formulário ou a lista vai aparecer
     private VBox contentArea;
-
-    // Botões de controle (para manipularmos o estilo visual)
     private Button btnCadastrar;
     private Button btnEditar;
     private Button btnExcluir;
 
-    // --- MOCK DE DADOS (Simulação do Banco) ---
-    // Classe interna para facilitar o desenvolvimento visual antes do Back-end estar pronto
+    // --- MOCK DE DADOS ---
     private static class FuncionarioMock {
-        String id;
-        String nome;
-        String cargo;
-        public FuncionarioMock(String id, String nome, String cargo) {
-            this.id = id; this.nome = nome; this.cargo = cargo;
+        String id, nome, cargo, email, telefone;
+        public FuncionarioMock(String id, String nome, String cargo, String email, String telefone) {
+            this.id = id; this.nome = nome; this.cargo = cargo; this.email = email; this.telefone = telefone;
         }
     }
 
-    // Lista falsa para testar a tela de Editar/Excluir
     private List<FuncionarioMock> listaFuncionarios = new ArrayList<>();
 
     public GestaoFuncionariosView() {
-        // Populando dados falsos para teste
-        listaFuncionarios.add(new FuncionarioMock("1", "Dr. João Silva", "MÉDICO"));
-        listaFuncionarios.add(new FuncionarioMock("2", "Maria Souza", "ENFERMEIRA"));
-        listaFuncionarios.add(new FuncionarioMock("3", "Carlos Pereira", "MOTORISTA"));
+        listaFuncionarios.add(new FuncionarioMock("1", "Dr. João Silva", "MÉDICO", "joao@email.com", "62 9999-9999"));
+        listaFuncionarios.add(new FuncionarioMock("2", "Maria Souza", "ENFERMEIRA", "maria@email.com", "62 8888-8888"));
     }
 
     public VBox criarView() {
@@ -67,22 +59,20 @@ public class GestaoFuncionariosView {
         toolBar.setAlignment(Pos.CENTER_LEFT);
         toolBar.setPadding(new Insets(10, 0, 20, 0));
 
-        // Botão Verde (Cadastrar)
-        btnCadastrar = criarBotaoCrud("CADASTRAR", "➕", "#10B981", "#059669"); // Esmeralda
+        // SOLUÇÃO DOS EMOJIS: Usando o novo método criarBotaoCrudComEmoji
+        btnCadastrar = criarBotaoCrudComEmoji("CADASTRAR", "➕", "#10B981", "#059669");
         btnCadastrar.setOnAction(e -> {
             atualizarSelecaoBotoes(btnCadastrar);
-            mostrarFormularioCadastro(null); // Null = Novo cadastro
+            mostrarFormularioCadastro(null);
         });
 
-        // Botão Amarelo (Editar)
-        btnEditar = criarBotaoCrud("EDITAR", "✏️", "#F59E0B", "#D97706"); // Âmbar
+        btnEditar = criarBotaoCrudComEmoji("EDITAR", "✏️", "#F59E0B", "#D97706");
         btnEditar.setOnAction(e -> {
             atualizarSelecaoBotoes(btnEditar);
             mostrarListaSelecao("EDITAR");
         });
 
-        // Botão Vermelho (Excluir)
-        btnExcluir = criarBotaoCrud("EXCLUIR", "🗑️", "#EF4444", "#B91C1C"); // Vermelho
+        btnExcluir = criarBotaoCrudComEmoji("EXCLUIR", "🗑️", "#EF4444", "#B91C1C");
         btnExcluir.setOnAction(e -> {
             atualizarSelecaoBotoes(btnExcluir);
             mostrarListaSelecao("EXCLUIR");
@@ -90,115 +80,92 @@ public class GestaoFuncionariosView {
 
         toolBar.getChildren().addAll(btnCadastrar, btnEditar, btnExcluir);
 
-        // --- ÁREA DE CONTEÚDO DINÂMICO ---
-        // É aqui que as telas de formulário ou lista vão aparecer
+        // --- ÁREA DE CONTEÚDO ---
         contentArea = new VBox(20);
         contentArea.setAlignment(Pos.TOP_CENTER);
         VBox.setVgrow(contentArea, Priority.ALWAYS);
 
-        // Inicia na tela de cadastro por padrão
+        // Inicia na tela de cadastro
         btnCadastrar.fire();
 
-        // Montagem Final
         root.getChildren().addAll(header, toolBar, contentArea);
         return root;
     }
 
     // =============================================================================================
-    // LÓGICA DE TROCA DE TELAS (SUB-NAVEGAÇÃO)
+    // TELAS
     // =============================================================================================
 
-    /**
-     * TELA 1: Formulário de Cadastro (Usado tanto para Novo quanto para Editar)
-     */
-    private void mostrarFormularioCadastro(FuncionarioMock funcionarioParaEditar) {
-        contentArea.getChildren().clear(); // Limpa a área de baixo
+    private void mostrarFormularioCadastro(FuncionarioMock funcionario) {
+        contentArea.getChildren().clear();
 
         VBox formCard = new VBox(20);
         formCard.setMaxWidth(800);
         formCard.setPadding(new Insets(30));
         formCard.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);");
 
-        Label lblAcao = new Label(funcionarioParaEditar == null ? "Novo Colaborador" : "Editando: " + funcionarioParaEditar.nome);
+        Label lblAcao = new Label(funcionario == null ? "Novo Colaborador" : "Editando: " + funcionario.nome);
         lblAcao.setFont(FONTE_SUBTITULO);
         lblAcao.setTextFill(COR_AZUL_NOTURNO);
 
-        // Campo Nome
+        // 1. Nome
         TextField txtNome = new TextField();
-        txtNome.setPromptText("Fulano Ciclano da Silva");
-        if(funcionarioParaEditar != null) txtNome.setText(funcionarioParaEditar.nome);
+        txtNome.setPromptText("Nome Completo");
+        if(funcionario != null) txtNome.setText(funcionario.nome);
         VBox boxNome = criarCampoInput("Nome Completo", txtNome);
 
-        // Campo Cargo (ComboBox)
+        // 2. Cargo
         ComboBox<String> comboCargo = new ComboBox<>();
         comboCargo.setItems(FXCollections.observableArrayList("MÉDICO", "ENFERMEIRO", "MOTORISTA"));
-        comboCargo.setPromptText("Selecione o Cargo...");
-        if(funcionarioParaEditar != null) comboCargo.setValue(funcionarioParaEditar.cargo);
+        comboCargo.setPromptText("Selecione...");
+        if(funcionario != null) comboCargo.setValue(funcionario.cargo);
         VBox boxCargo = criarCampoInput("Cargo / Função", comboCargo);
 
-        // Campo email
+        // 3. Email e Telefone (LADO A LADO - HBox)
+        HBox rowContato = new HBox(20);
+
         TextField txtEmail = new TextField();
-        txtEmail.setPromptText("fulano123@gmail.com");
-        if(funcionarioParaEditar != null) txtEmail.setText(funcionarioParaEditar.nome);
-        VBox boxEmail = criarCampoInput("Endereço de e-mail", txtEmail);
+        txtEmail.setPromptText("email@exemplo.com");
+        if(funcionario != null) txtEmail.setText(funcionario.email);
+        VBox boxEmail = criarCampoInput("E-mail", txtEmail);
 
-        // Campo contato
-        TextField txtContato = new TextField();
-        txtContato.setPromptText("62911223344");
-        if(funcionarioParaEditar != null) txtContato.setText(funcionarioParaEditar.nome);
-        VBox boxContato = criarCampoInput("Telefone para contato", txtContato);
+        TextField txtTel = new TextField();
+        txtTel.setPromptText("(62) 99999-9999");
+        if(funcionario != null) txtTel.setText(funcionario.telefone);
+        VBox boxTel = criarCampoInput("Telefone", txtTel);
 
-        // Botão Salvar (Bug Corrigido)
-        Button btnSalvar = new Button(funcionarioParaEditar == null ? "SALVAR CADASTRO" : "ATUALIZAR DADOS");
-        btnSalvar.setFont(FONTE_BOTAO2); // Define a fonte (Poppins)
-        btnSalvar.setPrefHeight(45);
+        // Faz os dois crescerem igualmente
+        HBox.setHgrow(boxEmail, Priority.ALWAYS);
+        HBox.setHgrow(boxTel, Priority.ALWAYS);
+
+        rowContato.getChildren().addAll(boxEmail, boxTel);
+
+        // 4. Botão Salvar (Com Correção de Hover e Fonte)
+        Button btnSalvar = new Button(funcionario == null ? "SALVAR CADASTRO" : "ATUALIZAR DADOS");
+        btnSalvar.setFont(FONTE_BOTAO2);
+        btnSalvar.setPrefHeight(50); // Altura confortável
         btnSalvar.setMaxWidth(Double.MAX_VALUE);
 
-        // Define o estilo BASE (Normal)
-        String estiloNormal = "-fx-background-color: " + HEX_VERMELHO + "; " +
-                "-fx-text-fill: white; " +
-                "-fx-background-radius: 5; " +
-                "-fx-cursor: hand; " +
-                "-fx-font-family: 'Poppins'; " + // Força a fonte no CSS também por segurança
-                "-fx-font-weight: bold; " +
-                "-fx-font-size: 18px;"; // Tamanho da FONTE_BOTAO2
+        String styleNormal = "-fx-background-color: " + HEX_VERMELHO + "; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 18px; -fx-font-family: 'Poppins';";
+        String styleHover = "-fx-background-color: #B91C1C; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 18px; -fx-font-family: 'Poppins';";
 
-        // Define o estilo HOVER (Mouse em cima) - Apenas muda a cor de fundo
-        String estiloHover = "-fx-background-color: #B91C1C; " + // Um vermelho mais escuro
-                "-fx-text-fill: white; " +
-                "-fx-background-radius: 5; " +
-                "-fx-cursor: hand; " +
-                "-fx-font-family: 'Poppins'; " +
-                "-fx-font-weight: bold; " +
-                "-fx-font-size: 18px;";
-
-        // Aplica o normal inicialmente
-        btnSalvar.setStyle(estiloNormal);
-
-        // Adiciona os Listeners para trocar o estilo SEM perder a fonte
-        btnSalvar.setOnMouseEntered(e -> btnSalvar.setStyle(estiloHover));
-        btnSalvar.setOnMouseExited(e -> btnSalvar.setStyle(estiloNormal));
-
+        btnSalvar.setStyle(styleNormal);
+        btnSalvar.setOnMouseEntered(e -> btnSalvar.setStyle(styleHover));
+        btnSalvar.setOnMouseExited(e -> btnSalvar.setStyle(styleNormal));
 
         btnSalvar.setOnAction(e -> {
-            System.out.println("Salvando: " + txtNome.getText() + " - " + comboCargo.getValue());
-            // TODO: Chamar Service.salvar(funcionario)
-            // Feedback visual simples
+            System.out.println("Salvando: " + txtNome.getText());
             btnSalvar.setText("SALVO COM SUCESSO!");
-            btnSalvar.setStyle("-fx-background-color: #10B981; -fx-text-fill: white; -fx-background-radius: 5;");
+            btnSalvar.setStyle("-fx-background-color: #10B981; -fx-text-fill: white; -fx-background-radius: 5; -fx-font-weight: bold; -fx-font-size: 18px; -fx-font-family: 'Poppins';");
         });
 
-        formCard.getChildren().addAll(lblAcao, boxNome, boxCargo, boxEmail, boxContato, btnSalvar);
+        formCard.getChildren().addAll(lblAcao, boxNome, boxCargo, rowContato, btnSalvar);
         contentArea.getChildren().add(formCard);
     }
 
-    /**
-     * TELA 2 e 3: Lista de Funcionários (Para Editar ou Excluir)
-     */
     private void mostrarListaSelecao(String modo) {
         contentArea.getChildren().clear();
-
-        Label lblInstrucao = new Label(modo.equals("EDITAR") ? "Selecione um funcionário para editar:" : "Selecione um funcionário para excluir:");
+        Label lblInstrucao = new Label(modo.equals("EDITAR") ? "Selecione para editar:" : "Selecione para excluir:");
         lblInstrucao.setFont(FONTE_CORPO);
         lblInstrucao.setTextFill(COR_TEXTO_CLARO);
         contentArea.getChildren().add(lblInstrucao);
@@ -210,30 +177,63 @@ public class GestaoFuncionariosView {
         VBox listaContainer = new VBox(10);
         listaContainer.setPadding(new Insets(5));
 
-        // GERA A LISTA (Aqui você integraria com o Banco: repository.findAll())
         for (FuncionarioMock func : listaFuncionarios) {
-            HBox card = criarCardFuncionario(func, modo);
-            listaContainer.getChildren().add(card);
+            listaContainer.getChildren().add(criarCardFuncionario(func, modo));
         }
-
         scroll.setContent(listaContainer);
         contentArea.getChildren().add(scroll);
     }
 
     // =============================================================================================
-    // COMPONENTES VISUAIS AUXILIARES
+    // COMPONENTES (CORRIGIDOS)
     // =============================================================================================
 
     /**
-     * Cria o card visual de cada funcionário na lista
+     * Versão Final: Corrige espaçamento fantasma e alinhamento visual
      */
+    private Button criarBotaoCrudComEmoji(String texto, String emoji, String corNormal, String corEscura) {
+        Button btn = new Button();
+        btn.setPrefWidth(180);
+        btn.setPrefHeight(50);
+        btn.setUserData(new String[]{corNormal, corEscura});
+
+        // 1. O Emoji (Ícone)
+        Text txtEmoji = new Text(emoji);
+        txtEmoji.setFont(Font.font("Segoe UI Emoji", 20)); // Aumentei para 20px
+        txtEmoji.setFill(Color.WHITE);
+        // O SEGREDO: Remove as bordas transparentes da fonte do emoji
+        txtEmoji.setBoundsType(TextBoundsType.VISUAL);
+
+        // 2. O Texto (Rótulo)
+        Label lblTexto = new Label(texto);
+        // Aumentei para 18px para ficar legível e proporcional
+        lblTexto.setFont(Font.font("Poppins", FontWeight.BOLD, 18));
+        lblTexto.setTextFill(Color.WHITE);
+        // Garante que o texto não tenha padding extra atrapalhando
+        lblTexto.setPadding(Insets.EMPTY);
+
+        // 3. O Container
+        HBox container = new HBox(8); // Espaçamento de 8px (Fica elegante, nem grudado nem longe)
+        container.setAlignment(Pos.CENTER); // Centraliza o conjunto dentro do botão
+
+        // Adiciona os itens
+        container.getChildren().addAll(txtEmoji, lblTexto);
+
+        btn.setGraphic(container);
+
+        // Estilo Base
+        String style = "-fx-background-color: " + corNormal + "; -fx-background-radius: 8; -fx-cursor: hand;";
+        btn.setStyle(style);
+
+        return btn;
+    }
+
     private HBox criarCardFuncionario(FuncionarioMock func, String modo) {
         HBox card = new HBox(15);
         card.setPadding(new Insets(15));
         card.setAlignment(Pos.CENTER_LEFT);
         card.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2); -fx-cursor: hand;");
 
-        // Ícone visual baseado no cargo
         Color corIcone = func.cargo.equals("MÉDICO") ? COR_VERMELHO_RESGATE : (func.cargo.equals("MOTORISTA") ? Color.web("#F59E0B") : Color.web("#10B981"));
         Circle icone = new Circle(20, corIcone);
         Label letra = new Label(func.cargo.substring(0,1));
@@ -241,7 +241,6 @@ public class GestaoFuncionariosView {
         letra.setFont(FONTE_BOTAO2);
         StackPane iconStack = new StackPane(icone, letra);
 
-        // Dados
         VBox info = new VBox(2);
         Label lblNome = new Label(func.nome);
         lblNome.setFont(FONTE_SUBTITULO);
@@ -253,76 +252,41 @@ public class GestaoFuncionariosView {
 
         HBox.setHgrow(info, Priority.ALWAYS);
 
-        // Botão de Ação (Lado direito do card)
         Button btnAcao = new Button(modo.equals("EDITAR") ? "EDITAR" : "EXCLUIR");
         String corBtn = modo.equals("EDITAR") ? "#F59E0B" : "#EF4444";
         btnAcao.setStyle("-fx-background-color: " + corBtn + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5;");
 
         card.getChildren().addAll(iconStack, info, btnAcao);
 
-        // AÇÃO DO CLIQUE
         card.setOnMouseClicked(e -> {
-            if (modo.equals("EDITAR")) {
-                mostrarFormularioCadastro(func); // Abre o formulário preenchido
-            } else {
-                // Lógica de Exclusão Visual
-                contentArea.getChildren().remove(card); // Remove visualmente (Simulação)
-                System.out.println("Excluindo ID: " + func.id);
-                // TODO: repository.deleteById(func.id);
+            if (modo.equals("EDITAR")) mostrarFormularioCadastro(func);
+            else {
+                contentArea.getChildren().remove(card); // Mock delete
             }
         });
-
         return card;
     }
 
-    /**
-     * Cria os botões coloridos do topo (Cadastrar, Editar, Excluir)
-     */
-    private Button criarBotaoCrud(String texto, String emoji, String corNormal, String corEscura) {
-        Button btn = new Button(emoji + "  " + texto);
-        btn.setFont(FONTE_BOTAO2);
-        btn.setPrefWidth(180);
-        btn.setPrefHeight(50);
-        btn.setUserData(new String[]{corNormal, corEscura}); // Guardamos as cores dentro do botão para usar depois
-
-        // Estilo Inicial
-        btn.setStyle("-fx-background-color: " + corNormal + "; -fx-text-fill: white; -fx-background-radius: 8; -fx-cursor: hand; -fx-font-weight: bold;");
-
-        return btn;
-    }
-
-    /**
-     * Lógica para "Escurecer" o botão selecionado e resetar os outros
-     */
     private void atualizarSelecaoBotoes(Button btnAtivo) {
         Button[] todos = {btnCadastrar, btnEditar, btnExcluir};
-
         for (Button b : todos) {
-            String[] cores = (String[]) b.getUserData(); // Recupera as cores guardadas
-            String corNormal = cores[0];
-            String corEscura = cores[1];
-
+            String[] cores = (String[]) b.getUserData();
             if (b == btnAtivo) {
-                // Botão Ativo: Fica escuro e com borda
-                b.setStyle("-fx-background-color: " + corEscura + "; -fx-text-fill: white; -fx-background-radius: 8; -fx-effect: innerShadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 0);");
+                b.setStyle("-fx-background-color: " + cores[1] + "; -fx-background-radius: 8; -fx-effect: innerShadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 0);");
             } else {
-                // Botão Inativo: Volta ao normal
-                b.setStyle("-fx-background-color: " + corNormal + "; -fx-text-fill: white; -fx-background-radius: 8;");
+                b.setStyle("-fx-background-color: " + cores[0] + "; -fx-background-radius: 8;");
             }
         }
     }
 
-    // Auxiliar de input (Reutilizado)
     private VBox criarCampoInput(String label, Control input) {
         VBox v = new VBox(8);
         Label l = new Label(label);
         l.setFont(FONTE_CORPO);
         l.setTextFill(Color.web("#64748B"));
-
         input.setPrefHeight(45);
         input.setMaxWidth(Double.MAX_VALUE);
         input.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 14px;");
-
         v.getChildren().addAll(l, input);
         return v;
     }
