@@ -1,6 +1,7 @@
 package com.pi.grafos.view.screens;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.pi.grafos.controller.MainController;
@@ -36,6 +37,10 @@ public class TelaLogin {
 
     @Autowired
     private MainController controller;
+
+    @Autowired
+    @Lazy // Importante para evitar ciclo de dependência
+    private TelaDashboard telaDashboard;
 
     public Scene criarCena(Stage stage) {
 
@@ -189,19 +194,39 @@ public class TelaLogin {
             }
         });
 
+        // --- Lógica do Botão Logar ---
         btnLogar.setOnAction(event -> {
             String nomeUsuario = txtEmail.getText();
             String senhaUsuario = txtPassword.getText();
 
-            if (!(nomeUsuario.equals("") || senhaUsuario.equals(""))) {
-                lblMensagemErro.setText("Validando Cadastro");
+            if (nomeUsuario.isEmpty() || senhaUsuario.isEmpty()) {
+                lblMensagemErro.setText("Preencha todos os campos.");
+                lblMensagemErro.setTextFill(Color.RED);
+                return;
+            }
+
+            // Tenta logar pelo controller
+            boolean loginSucesso = controller.logar(nomeUsuario, senhaUsuario);
+
+            if (loginSucesso) {
+                lblMensagemErro.setText("Login autorizado! Carregando...");
                 lblMensagemErro.setTextFill(Color.GREEN);
 
-                controller.logar(nomeUsuario, senhaUsuario);
-                lblMensagemErro.setText("Usuário logado, redirecionando!.");
-                
+                // --- AQUI A MÁGICA DA TROCA DE TELA ---
+                // 1. Captura estado da janela (Maximizada ou não)
+                boolean estavaMaximized = stage.isMaximized();
+                double w = stage.getWidth();
+                double h = stage.getHeight();
+
+                // 2. Troca a cena para o Dashboard
+                stage.setScene(telaDashboard.criarCena(stage));
+
+                // 3. Restaura o estado da janela
+                if (estavaMaximized) stage.setMaximized(true);
+                else { stage.setWidth(w); stage.setHeight(h); }
+
             } else {
-                lblMensagemErro.setText("Verifique os dados cadastrados ou faça cadastro.");
+                lblMensagemErro.setText("Usuário ou senha inválidos.");
                 lblMensagemErro.setTextFill(Color.RED);
             }
         });
