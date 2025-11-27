@@ -1,6 +1,5 @@
 package com.pi.grafos.service.grafo;
 
-import org.springframework.stereotype.Service;
 
 // Comentei se não o programa não roda
 // Essa classe não precisa ser um "@Service", pois ela é apenas um molde de dados (minha opinião)

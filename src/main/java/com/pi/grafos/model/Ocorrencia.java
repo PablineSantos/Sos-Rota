@@ -1,6 +1,10 @@
 package com.pi.grafos.model;
 
+import com.pi.grafos.model.enums.OcorrenciaStatus;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,6 +22,8 @@ public class Ocorrencia {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idOcorrencia;
 
+    private String descricao;
+
     @ManyToOne
     @JoinColumn(name = "idLocal")
     private Localizacao local;
@@ -25,4 +31,7 @@ public class Ocorrencia {
     @ManyToOne
     @JoinColumn(name = "idTipoOcorrencia")
     private TipoOcorrencia tipoOcorrencia;
+
+    @Enumerated(EnumType.STRING)
+    private OcorrenciaStatus gravidade;
 }
