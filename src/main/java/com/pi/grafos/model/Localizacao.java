@@ -1,8 +1,8 @@
 package com.pi.grafos.model;
 
-import com.pi.grafos.model.enums.TipoLocalizacao;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 import java.util.ArrayList;
@@ -10,7 +10,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "localizacao")
-@Data
+@Getter
+@Setter
 public class Localizacao {
 
     @Id
@@ -18,9 +19,6 @@ public class Localizacao {
     private Long idLocal;
 
     private String nome;
-
-    @Enumerated(EnumType.STRING)
-    private TipoLocalizacao tipo; // Unidade ou Bairro
 
     // Identificador para a cidade -- Caso formos cadastrar mais de uma cidade/grafo
     @ManyToOne

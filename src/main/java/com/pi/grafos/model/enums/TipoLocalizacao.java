@@ -1,5 +1,6 @@
 package com.pi.grafos.model.enums;
 
+// Unused
 public enum TipoLocalizacao {
     BAIRRO("Bairro"),
     BASE_AMBULANCIA("Unidade");

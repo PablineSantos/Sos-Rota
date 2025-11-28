@@ -1,11 +1,13 @@
 package com.pi.grafos.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "ruas")
-@Data
+@Getter
+@Setter
 public class Rua {
     
     @Id
