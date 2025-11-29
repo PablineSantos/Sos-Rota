@@ -1,5 +1,5 @@
 package com.pi.grafos.view.screens;
-
+/*
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.pi.grafos.service.FuncionarioService;
@@ -146,7 +146,7 @@ public class FormularioEquipeView {
     /**
      * Cria uma linha dinâmica com Combos e Botão Remover
      */
-    private void adicionarLinhaMembro(int index) {
+    /*private void adicionarLinhaMembro(int index) {
         HBox linha = new HBox(10);
         linha.setAlignment(Pos.CENTER_LEFT);
         linha.setStyle("-fx-background-color: #F8FAFC; -fx-padding: 10; -fx-background-radius: 5;");
@@ -208,3 +208,5 @@ public class FormularioEquipeView {
         return v;
     }
 }
+
+*/
