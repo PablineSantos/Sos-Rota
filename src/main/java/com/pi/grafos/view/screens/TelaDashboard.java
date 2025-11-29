@@ -81,13 +81,13 @@ public class TelaDashboard {
         Button btnFrota = criarBotaoMenu("Ambulâncias", "🚑");
         btnFrota.setOnAction(e -> {
             atualizarEstiloBotao(btnFrota);
-            setConteudoCentral(criarPlaceholderFormulario("Gestão de Frota"));
+            setConteudoCentral(new GestaoAmbulanciasView().criarView());
         });
 
         Button btnEquipe = criarBotaoMenu("Equipe", "👨‍⚕️");
         btnEquipe.setOnAction(e -> {
             atualizarEstiloBotao(btnEquipe);
-            setConteudoCentral(new FormularioEquipeView().criarView());
+            setConteudoCentral(new GestaoEquipesView().criarView());
         });
 
         Button btnColaborador = criarBotaoMenu("Colaboradores", "⚕");

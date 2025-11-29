@@ -1,29 +1,59 @@
 package com.pi.grafos.view.screens;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import static com.pi.grafos.view.styles.AppStyles.*;
+import com.pi.grafos.controller.MainController;
+import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
+import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_PRETO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_BOTAO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_PEQUENA;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_SUBTITULO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_TITULO;
+import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
+
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.Control;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
 
 @Component
 public class TelaCadastro {
 
-    // Injetamos a tela de Login com @Lazy para evitar "Ciclo Infinito" (Login chama Cadastro, Cadastro chama Login)
     @Autowired
     @Lazy
     private TelaLogin telaLogin;
+
+    @Autowired
+    @Lazy 
+    private TelaDashboard telaDashboard;
+
+    @Autowired
+    private MainController mainController;
 
     public Scene criarCena(Stage stage) {
 
@@ -88,11 +118,11 @@ public class TelaCadastro {
         formContainer.getChildren().addAll(lblUser, txtUser, lblPass, txtPass, lblConfirm, txtConfirm, lblErro);
 
         // --- BOTÃO REGISTRAR ---
-        Button btnRegistrar = new Button("Registrar");
-        btnRegistrar.setFont(FONTE_BOTAO);
-        btnRegistrar.setPrefHeight(45);
-        btnRegistrar.setMaxWidth(Double.MAX_VALUE);
-        btnRegistrar.setStyle("-fx-background-color: " + HEX_VERMELHO + "; -fx-text-fill: white; -fx-background-radius: 4; -fx-cursor: hand;");
+        Button btnCadastrar = new Button("Registrar");
+        btnCadastrar.setFont(FONTE_BOTAO);
+        btnCadastrar.setPrefHeight(45);
+        btnCadastrar.setMaxWidth(Double.MAX_VALUE);
+        btnCadastrar.setStyle("-fx-background-color: " + HEX_VERMELHO + "; -fx-text-fill: white; -fx-background-radius: 4; -fx-cursor: hand;");
 
         // --- LINK VOLTAR PARA LOGIN ---
         Hyperlink linkLogin = new Hyperlink("Já tem uma conta? Faça Login");
@@ -121,7 +151,7 @@ public class TelaCadastro {
         lblCopyright.setFont(Font.font("Poppins", FontWeight.NORMAL, 10));
         lblCopyright.setTextFill(Color.web("#999999"));
 
-        cadastroPanel.getChildren().addAll(logoView, lblTitulo, formContainer, btnRegistrar, linkLogin, spacer, lblCopyright);
+        cadastroPanel.getChildren().addAll(logoView, lblTitulo, formContainer, btnCadastrar, linkLogin, spacer, lblCopyright);
 
         // --- 2. PAINEL DIREITO (Imagem) ---
         Region backgroundRegion = criarBackgroundImagem();
@@ -135,14 +165,40 @@ public class TelaCadastro {
         cadastroPanel.setMinWidth(400);
 
         // Lógica de Registro
-        btnRegistrar.setOnAction(e -> {
-            if (txtPass.getText().equals(txtConfirm.getText()) && !txtUser.getText().isEmpty()) {
-                lblErro.setText("Usuário registrado com sucesso!");
-                lblErro.setTextFill(Color.GREEN);
-                // Aqui você chamaria: usuarioService.salvar(...)
+        btnCadastrar.setOnAction(e -> {
+            
+            String nomeUsuario = txtUser.getText();
+            String senhaUsuario = txtPass.getText();
+
+            if (nomeUsuario.isEmpty() || senhaUsuario.isEmpty()) {
+                Alert alert = new Alert(AlertType.WARNING);
+                alert.setTitle("Campos vazios");
+                alert.setHeaderText(null);
+                alert.setContentText("Preencha todos os campos antes de salvar!");
+                alert.showAndWait();
+            }
+
+            if (mainController.logar(nomeUsuario, senhaUsuario)) {
+                Alert alert = new Alert(AlertType.WARNING);
+                alert.setTitle("Usuário existente");
+                alert.setHeaderText(null);
+                alert.setContentText("Usuário já existente.");
+                alert.showAndWait();
             } else {
-                lblErro.setText("Senhas não conferem ou campos vazios.");
-                lblErro.setTextFill(Color.RED);
+
+                if (nomeUsuario.isEmpty() || senhaUsuario.isEmpty()) return;
+
+                if (txtPass.getText().equals(txtConfirm.getText()) && !txtUser.getText().isEmpty()) {
+                    lblErro.setText("Usuário registrado com sucesso!");
+                    lblErro.setTextFill(Color.GREEN);
+                    
+                    mainController.cadastrarUsuario(nomeUsuario, senhaUsuario);
+                    stage.setScene(telaDashboard.criarCena(stage));
+
+                } else {
+                    lblErro.setText("Senhas não conferem ou campos vazios.");
+                    lblErro.setTextFill(Color.RED);
+                }
             }
         });
 

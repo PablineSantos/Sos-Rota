@@ -1,5 +1,8 @@
 package com.pi.grafos.view.screens;
+/*
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.pi.grafos.service.FuncionarioService;
 import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
 import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_CLARO;
 import static com.pi.grafos.view.styles.AppStyles.FONTE_BOTAO2;
@@ -9,6 +12,7 @@ import static com.pi.grafos.view.styles.AppStyles.FONTE_TITULO;
 import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
 
 import javafx.collections.FXCollections;
+import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -18,12 +22,17 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 public class FormularioEquipeView {
+
+    @Autowired
+    private FuncionarioService controller;
 
     private VBox containerMembros; // Onde as linhas vão aparecer
     private TextField txtNomeEquipe;
@@ -72,16 +81,10 @@ public class FormularioEquipeView {
         scrollMembros.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: #E2E8F0; -fx-border-radius: 5;");
 
         // Adiciona 3 linhas padrão (Mínimo para UTI)
-        adicionarLinhaMembro("CONDUTOR");
-        adicionarLinhaMembro("ENFERMEIRO");
-        adicionarLinhaMembro("MÉDICO");
+        adicionarLinhaMembro(0); 
+        adicionarLinhaMembro(1); 
+        adicionarLinhaMembro(2); 
 
-        // Botão de Adicionar Mais
-        Button btnAddMembro = new Button("+ Adicionar Outro Profissional");
-        btnAddMembro.setFont(FONTE_CORPO);
-        btnAddMembro.setStyle("-fx-background-color: white; -fx-text-fill: " + HEX_VERMELHO + "; -fx-border-color: " + HEX_VERMELHO + "; -fx-border-radius: 5; -fx-cursor: hand; -fx-border-style: dashed;");
-        btnAddMembro.setMaxWidth(Double.MAX_VALUE);
-        btnAddMembro.setOnAction(e -> adicionarLinhaMembro(null));
 
         // --- BOTÕES FINAIS ---
         HBox boxBtn = new HBox(15);
@@ -94,10 +97,10 @@ public class FormularioEquipeView {
         btnCancel.setPrefHeight(50);
         btnCancel.setPrefWidth(120);
 
-        Button btnSalvar = new Button("SALVAR EQUIPE");
-        btnSalvar.setFont(FONTE_BOTAO2);
-        btnSalvar.setPrefHeight(50);
-        btnSalvar.setPrefWidth(180);
+        Button btnCadastrarEquipe = new Button("SALVAR EQUIPE");
+        btnCadastrarEquipe.setFont(FONTE_BOTAO2);
+        btnCadastrarEquipe.setPrefHeight(50);
+        btnCadastrarEquipe.setPrefWidth(180);
 
         // Define o estilo BASE (Normal)
         String estiloNormal = "-fx-background-color: " + HEX_VERMELHO + "; " +
@@ -109,7 +112,7 @@ public class FormularioEquipeView {
                 "-fx-font-size: 18px;"; // Tamanho da FONTE_BOTAO2
 
         // Define o estilo HOVER (Mouse em cima) - Apenas muda a cor de fundo
-        String estiloHover = "-fx-background-color: #B91C1C; " + // Um vermelho mais escuro
+        String estiloHover = "-fx-background-color: #B91C1C; " + 
                 "-fx-text-fill: white; " +
                 "-fx-background-radius: 5; " +
                 "-fx-cursor: hand; " +
@@ -118,22 +121,23 @@ public class FormularioEquipeView {
                 "-fx-font-size: 18px;";
 
         // Aplica o normal inicialmente
-        btnSalvar.setStyle(estiloNormal);
+        btnCadastrarEquipe.setStyle(estiloNormal);
 
         // Adiciona os Listeners para trocar o estilo SEM perder a fonte
-        btnSalvar.setOnMouseEntered(e -> btnSalvar.setStyle(estiloHover));
-        btnSalvar.setOnMouseExited(e -> btnSalvar.setStyle(estiloNormal));
+        btnCadastrarEquipe.setOnMouseEntered(e -> btnCadastrarEquipe.setStyle(estiloHover));
+        btnCadastrarEquipe.setOnMouseExited(e -> btnCadastrarEquipe.setStyle(estiloNormal));
 
 
         // Ação de Salvar (Mock)
-        btnSalvar.setOnAction(e -> {
+        btnCadastrarEquipe.setOnAction(e -> {
             System.out.println("Salvando equipe: " + txtNomeEquipe.getText());
-            // Aqui iteraria sobre containerMembros.getChildren() para pegar os dados
+            
+
         });
 
-        boxBtn.getChildren().addAll(btnCancel, btnSalvar);
+        boxBtn.getChildren().addAll(btnCancel, btnCadastrarEquipe);
 
-        formCard.getChildren().addAll(lblTitulo, lblDesc, boxNome, lblMembros, scrollMembros, btnAddMembro, boxBtn);
+        formCard.getChildren().addAll(lblTitulo, lblDesc, boxNome, lblMembros, scrollMembros, boxBtn);
         root.getChildren().add(formCard);
 
         return root;
@@ -142,19 +146,30 @@ public class FormularioEquipeView {
     /**
      * Cria uma linha dinâmica com Combos e Botão Remover
      */
-    private void adicionarLinhaMembro(String funcaoPreSelecionada) {
+    /*private void adicionarLinhaMembro(int index) {
         HBox linha = new HBox(10);
         linha.setAlignment(Pos.CENTER_LEFT);
         linha.setStyle("-fx-background-color: #F8FAFC; -fx-padding: 10; -fx-background-radius: 5;");
 
         // Combo de Função
         ComboBox<String> comboFuncao = new ComboBox<>();
-        comboFuncao.setItems(FXCollections.observableArrayList("CONDUTOR", "MÉDICO", "ENFERMEIRO", "SOCORRISTA"));
+        if (index == 0) {
+            comboFuncao.setItems(FXCollections.observableArrayList( "MÉDICO"));
+        } else if (index == 1) {
+            comboFuncao.setItems(FXCollections.observableArrayList( "ENFERMEIRO"));
+        } else{
+            comboFuncao.setItems(FXCollections.observableArrayList( "CONDUTOR"));
+        }
+
+        comboFuncao.addEventFilter(MouseEvent.MOUSE_PRESSED, Event::consume); // impede clique
+        comboFuncao.addEventFilter(KeyEvent.KEY_PRESSED, e -> e.consume());   // impede teclado
+        comboFuncao.setFocusTraversable(false);    
+
         comboFuncao.setPromptText("Função");
         comboFuncao.setPrefWidth(150);
         comboFuncao.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px;");
-        if (funcaoPreSelecionada != null) comboFuncao.setValue(funcaoPreSelecionada);
-
+        HBox.setHgrow(comboFuncao, Priority.NEVER);
+        
         // Combo de Nome (Simulando busca no banco)
         ComboBox<String> comboNome = new ComboBox<>();
         comboNome.setPromptText("Selecione o Profissional...");
@@ -169,15 +184,9 @@ public class FormularioEquipeView {
         comboNome.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px;");
         HBox.setHgrow(comboNome, Priority.ALWAYS);
 
-        // Botão Remover (X)
-        Button btnRemover = new Button("✕");
-        btnRemover.setStyle("-fx-background-color: transparent; -fx-text-fill: #EF4444; -fx-font-weight: bold; -fx-cursor: hand;");
-        btnRemover.setOnAction(e -> {
-            // Remove esta linha do container
-            containerMembros.getChildren().remove(linha);
-        });
 
-        linha.getChildren().addAll(comboFuncao, comboNome, btnRemover);
+
+        linha.getChildren().addAll(comboFuncao, comboNome);
 
         // Adiciona ao container (dentro do ScrollPane)
         containerMembros.getChildren().add(linha);
@@ -199,3 +208,5 @@ public class FormularioEquipeView {
         return v;
     }
 }
+
+*/
