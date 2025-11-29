@@ -5,15 +5,21 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.pi.grafos.controller.MainController;
-// import com.pi.grafos.view.screens.TelaCadastro.*; // Import desnecessário se estiver no mesmo pacote
-
-import static com.pi.grafos.view.styles.AppStyles.*;
+import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
+import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_PRETO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_BOTAO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_PEQUENA;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_SUBTITULO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_TITULO; // Import restaurado
+import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.Hyperlink; // Import restaurado
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -120,21 +126,7 @@ public class TelaLogin {
         linkCadastro.setOnMouseEntered(e -> linkCadastro.setStyle("-fx-underline: true; -fx-cursor: hand;"));
         linkCadastro.setOnMouseExited(e -> linkCadastro.setStyle("-fx-underline: false; -fx-cursor: hand;"));
 
-        // Ação de Navegação Inteligente (Preserva tamanho da janela)
         linkCadastro.setOnAction(e -> {
-            // 1. Captura estado da janela
-//            boolean estavaMaximized = stage.isMaximized();
-//            double w = stage.getWidth();
-//            double h = stage.getHeight();
-//
-//            // 2. Troca a cena para a Tela de Cadastro
-//            stage.setScene(telaCadastro.criarCena(stage));
-//
-//            // 3. Restaura estado
-//            if (estavaMaximized) stage.setMaximized(true);
-//            else { stage.setWidth(w); stage.setHeight(h); }
-
-
 
             stage.setScene(telaCadastro.criarCena(stage));
 
@@ -158,8 +150,8 @@ public class TelaLogin {
                 logoView,
                 lblLogin,
                 formContainer,
-                btnLogar,      // Botão principal
-                linkCadastro,  // Link secundário (Restaurado)
+                btnLogar,      
+                linkCadastro,  
                 spacer,
                 lblCopyright
         );
@@ -202,45 +194,24 @@ public class TelaLogin {
             String senhaUsuario = txtPassword.getText();
 
             if (nomeUsuario.isEmpty() || senhaUsuario.isEmpty()) {
-                lblMensagemErro.setText("Preencha todos os campos.");
-                lblMensagemErro.setTextFill(Color.RED);
-                return;
+                Alert alert = new Alert(AlertType.WARNING);
+                alert.setTitle("Campos vazios");
+                alert.setHeaderText(null);
+                alert.setContentText("Preencha todos os campos antes de salvar!");
+                alert.showAndWait();
             }
 
             try {
-                // Chama o controller para verificar login
                 boolean loginSucesso = controller.logar(nomeUsuario, senhaUsuario);
 
-                if (loginSucesso) {
-                    lblMensagemErro.setText("Login autorizado! Carregando...");
-                    lblMensagemErro.setTextFill(Color.GREEN);
-
-                    // --- TROCA DE TELA PARA DASHBOARD ---
-                    // 1. Troca a cena
-//                    stage.setScene(telaDashboard.criarCena(stage));
-//
-//                    // 2. Hack do Toggle para garantir tela cheia
-//                    stage.setMaximized(false);
-//                    stage.setMaximized(true);
-//                    stage.centerOnScreen();
-
-                } else {
-                    lblMensagemErro.setText("Usuário ou senha inválidos.");
-                    lblMensagemErro.setTextFill(Color.RED);
-                }
+                if (loginSucesso == true) {
+                    stage.setScene(telaDashboard.criarCena(stage));
+                } 
+                
             } catch (Exception e) {
                 lblMensagemErro.setText("Erro de conexão: " + e.getMessage());
                 e.printStackTrace();
             }
-
-
-            // PARA TESTE!!! CHAMA A TELA IDEPENDENTE DO CADASTRO
-            stage.setScene(telaDashboard.criarCena(stage));
-
-            // 2. Hack do Toggle para garantir tela cheia
-            stage.setMaximized(false);
-            stage.setMaximized(true);
-            stage.centerOnScreen();
         });
 
         return new Scene(root, 1000, 700);

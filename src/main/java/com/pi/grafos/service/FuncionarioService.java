@@ -5,14 +5,13 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 
-import com.pi.grafos.model.Ambulancia;
 import com.pi.grafos.model.Funcionario;
 import com.pi.grafos.model.enums.Cargos;
 import com.pi.grafos.repository.FuncionarioRepository;
 
 @Service
 public class FuncionarioService {
-
+    
     private final FuncionarioRepository repository;
 
     public FuncionarioService(FuncionarioRepository repository){

@@ -1,20 +1,50 @@
 package com.pi.grafos.view.screens;
 
-import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.text.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.pi.grafos.view.styles.AppStyles.*;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.pi.grafos.model.enums.Cargos;
+import com.pi.grafos.service.FuncionarioService;
+import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
+import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_CLARO;
+import static com.pi.grafos.view.styles.AppStyles.COR_VERMELHO_RESGATE;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_BOTAO2;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_CORPO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_PEQUENA;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_SUBTITULO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_TITULO;
+import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
+
+import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextBoundsType;
 
 public class GestaoFuncionariosView {
+
+
+    @Autowired
+    private FuncionarioService funcionarioService;
+            
 
     private VBox contentArea;
     private Button btnCadastrar;
@@ -116,7 +146,7 @@ public class GestaoFuncionariosView {
 
         // 2. Cargo
         ComboBox<String> comboCargo = new ComboBox<>();
-        comboCargo.setItems(FXCollections.observableArrayList("MÉDICO", "ENFERMEIRO", "MOTORISTA"));
+        comboCargo.setItems(FXCollections.observableArrayList("MEDICO", "ENFERMEIRO", "CONDUTOR"));
         comboCargo.setPromptText("Selecione...");
         if(funcionario != null) comboCargo.setValue(funcionario.cargo);
         VBox boxCargo = criarCampoInput("Cargo / Função", comboCargo);
@@ -154,9 +184,30 @@ public class GestaoFuncionariosView {
         btnSalvar.setOnMouseExited(e -> btnSalvar.setStyle(styleNormal));
 
         btnSalvar.setOnAction(e -> {
-            System.out.println("Salvando: " + txtNome.getText());
-            btnSalvar.setText("SALVO COM SUCESSO!");
-            btnSalvar.setStyle("-fx-background-color: #10B981; -fx-text-fill: white; -fx-background-radius: 5; -fx-font-weight: bold; -fx-font-size: 18px; -fx-font-family: 'Poppins';");
+
+            String nomeFuncionario = txtNome.getText();
+            String funcaoFunconario = comboCargo.getValue();
+            Cargos cargoEnum = Cargos.valueOf(funcaoFunconario);
+
+            String emailFuncionario = txtEmail.getText();
+            String telFuncionario = txtTel.getText();
+
+            if(nomeFuncionario.isEmpty() || funcaoFunconario == null || emailFuncionario.isEmpty() || telFuncionario.isEmpty()){
+                Alert alert = new Alert(AlertType.WARNING);
+                alert.setTitle("Campos vazios");
+                alert.setHeaderText(null);
+                alert.setContentText("Preencha todos os campos antes de salvar!");
+                alert.showAndWait();
+                return;
+            }
+
+            try {
+            funcionarioService.cadastrarFuncionario(nomeFuncionario, cargoEnum);
+
+            } catch (Exception error) {
+                error.printStackTrace();
+            }
+            
         });
 
         formCard.getChildren().addAll(lblAcao, boxNome, boxCargo, rowContato, btnSalvar);
@@ -234,7 +285,7 @@ public class GestaoFuncionariosView {
         card.setAlignment(Pos.CENTER_LEFT);
         card.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2); -fx-cursor: hand;");
 
-        Color corIcone = func.cargo.equals("MÉDICO") ? COR_VERMELHO_RESGATE : (func.cargo.equals("MOTORISTA") ? Color.web("#F59E0B") : Color.web("#10B981"));
+        Color corIcone = func.cargo.equals("MÉDICO") ? COR_VERMELHO_RESGATE : (func.cargo.equals("CONDUTOR") ? Color.web("#F59E0B") : Color.web("#10B981"));
         Circle icone = new Circle(20, corIcone);
         Label letra = new Label(func.cargo.substring(0,1));
         letra.setTextFill(Color.WHITE);
