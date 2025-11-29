@@ -16,6 +16,8 @@ import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Control;
 import javafx.scene.control.Hyperlink;
@@ -42,18 +44,16 @@ import javafx.stage.Stage;
 @Component
 public class TelaCadastro {
 
-    // Injetamos a tela de Login com @Lazy para evitar "Ciclo Infinito" (Login chama Cadastro, Cadastro chama Login)
     @Autowired
     @Lazy
     private TelaLogin telaLogin;
 
     @Autowired
-    @Lazy // Evita ciclo de dependência com o Dashboard
+    @Lazy 
     private TelaDashboard telaDashboard;
 
-
     @Autowired
-    private MainController controller;
+    private MainController mainController;
 
     public Scene criarCena(Stage stage) {
 
@@ -170,11 +170,20 @@ public class TelaCadastro {
             String nomeUsuario = txtUser.getText();
             String senhaUsuario = txtPass.getText();
 
-            if (controller.logar(nomeUsuario, senhaUsuario) == true) {
-                lblErro.setText("Usuário já existe!");
-                lblErro.setTextFill(Color.RED);
-                return;
+            if (nomeUsuario.isEmpty() || senhaUsuario.isEmpty()) {
+                Alert alert = new Alert(AlertType.WARNING);
+                alert.setTitle("Campos vazios");
+                alert.setHeaderText(null);
+                alert.setContentText("Preencha todos os campos antes de salvar!");
+                alert.showAndWait();
+            }
 
+            if (mainController.logar(nomeUsuario, senhaUsuario)) {
+                Alert alert = new Alert(AlertType.WARNING);
+                alert.setTitle("Usuário existente");
+                alert.setHeaderText(null);
+                alert.setContentText("Usuário já existente.");
+                alert.showAndWait();
             } else {
 
                 if (nomeUsuario.isEmpty() || senhaUsuario.isEmpty()) return;
@@ -183,7 +192,7 @@ public class TelaCadastro {
                     lblErro.setText("Usuário registrado com sucesso!");
                     lblErro.setTextFill(Color.GREEN);
                     
-                    controller.cadastrarUsuario(nomeUsuario, senhaUsuario);
+                    mainController.cadastrarUsuario(nomeUsuario, senhaUsuario);
                     stage.setScene(telaDashboard.criarCena(stage));
 
                 } else {

@@ -16,6 +16,8 @@ import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
@@ -192,9 +194,11 @@ public class TelaLogin {
             String senhaUsuario = txtPassword.getText();
 
             if (nomeUsuario.isEmpty() || senhaUsuario.isEmpty()) {
-                lblMensagemErro.setText("Preencha todos os campos.");
-                lblMensagemErro.setTextFill(Color.RED);
-                return;
+                Alert alert = new Alert(AlertType.WARNING);
+                alert.setTitle("Campos vazios");
+                alert.setHeaderText(null);
+                alert.setContentText("Preencha todos os campos antes de salvar!");
+                alert.showAndWait();
             }
 
             try {
@@ -202,11 +206,8 @@ public class TelaLogin {
 
                 if (loginSucesso == true) {
                     stage.setScene(telaDashboard.criarCena(stage));
-
-                } else {
-                    lblMensagemErro.setText("Usuário ou senha inválidos.");
-                    lblMensagemErro.setTextFill(Color.RED);
-                }
+                } 
+                
             } catch (Exception e) {
                 lblMensagemErro.setText("Erro de conexão: " + e.getMessage());
                 e.printStackTrace();
