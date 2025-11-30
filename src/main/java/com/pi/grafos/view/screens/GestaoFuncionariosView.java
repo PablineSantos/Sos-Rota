@@ -3,8 +3,6 @@ package com.pi.grafos.view.screens;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.pi.grafos.model.enums.Cargos;
 import com.pi.grafos.service.FuncionarioService;
 import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
@@ -41,11 +39,8 @@ import javafx.scene.text.TextBoundsType;
 
 public class GestaoFuncionariosView {
 
-
-    @Autowired
-    private FuncionarioService funcionarioService;
+    private final FuncionarioService funcionarioService;
             
-
     private VBox contentArea;
     private Button btnCadastrar;
     private Button btnEditar;
@@ -61,7 +56,8 @@ public class GestaoFuncionariosView {
 
     private List<FuncionarioMock> listaFuncionarios = new ArrayList<>();
 
-    public GestaoFuncionariosView() {
+    public GestaoFuncionariosView(FuncionarioService funcionarioService) {
+        this.funcionarioService = funcionarioService;
         listaFuncionarios.add(new FuncionarioMock("1", "Dr. João Silva", "MÉDICO", "joao@email.com", "62 9999-9999"));
         listaFuncionarios.add(new FuncionarioMock("2", "Maria Souza", "ENFERMEIRA", "maria@email.com", "62 8888-8888"));
     }

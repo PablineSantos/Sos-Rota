@@ -1,10 +1,10 @@
 package com.pi.grafos.view.styles;
 
+import java.io.InputStream;
+
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.paint.Color;
-
-import java.io.InputStream;
 
 public class AppStyles {
 
@@ -67,8 +67,6 @@ public class AppStyles {
     private static Font carregarFonte(String nomeArquivo, double tamanho) {
         try {
             String caminho = "/fonts/Poppins/" + nomeArquivo;
-
-            System.out.println("Tentando carregar: " + caminho);
 
             InputStream fontStream = AppStyles.class.getResourceAsStream(caminho);
 

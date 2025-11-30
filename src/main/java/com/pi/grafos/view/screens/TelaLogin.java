@@ -197,7 +197,7 @@ public class TelaLogin {
                 Alert alert = new Alert(AlertType.WARNING);
                 alert.setTitle("Campos vazios");
                 alert.setHeaderText(null);
-                alert.setContentText("Preencha todos os campos antes de salvar!");
+                alert.setContentText("Preencha todos os campos de logar");
                 alert.showAndWait();
             }
 
@@ -206,7 +206,13 @@ public class TelaLogin {
 
                 if (loginSucesso == true) {
                     stage.setScene(telaDashboard.criarCena(stage));
-                } 
+                } else {
+                    Alert alert = new Alert(AlertType.WARNING);
+                    alert.setTitle("Verifique seu login");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Verifique seu cadastro!");
+                    alert.showAndWait();
+                }
                 
             } catch (Exception e) {
                 lblMensagemErro.setText("Erro de conexão: " + e.getMessage());
