@@ -183,7 +183,6 @@ public class GestaoEquipesView {
         btnSalvar.setOnMouseExited(e -> btnSalvar.setStyle(styleBase));
 
         btnSalvar.setOnAction(e -> {
-            System.out.println("Salvando...");
             btnSalvar.setText("SALVO COM SUCESSO!");
             btnSalvar.setStyle("-fx-background-color: #10B981; -fx-text-fill: white; -fx-background-radius: 5; -fx-font-weight: bold; -fx-font-family: 'Poppins'; -fx-font-size: 18px;");
         });
@@ -414,4 +413,6 @@ public class GestaoEquipesView {
         v.getChildren().addAll(l, input);
         return v;
     }
+
+    
 }

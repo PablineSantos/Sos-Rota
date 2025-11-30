@@ -204,8 +204,6 @@ public class GestaoFuncionariosView {
 
             }
 
-            
-
             } catch (Exception error) {
                 error.printStackTrace();
             }

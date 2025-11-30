@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.pi.grafos.repository.AmbulanciaRepository;
+import com.pi.grafos.repository.LocalizacaoRepository;
 import com.pi.grafos.service.FuncionarioService;
 import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
 import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_BRANCO;
@@ -50,6 +52,13 @@ import javafx.stage.Stage;
 public class TelaDashboard {
     @Autowired
     private FuncionarioService funcionarioService;
+
+    @Autowired
+    private AmbulanciaRepository ambulanciaRepository;
+
+    @Autowired
+    private LocalizacaoRepository localizacaoRepository;
+
 
     // --- CONFIGURAÇÕES VISUAIS ---
     private static final double LARGURA_SIDEBAR = 240;
@@ -105,7 +114,7 @@ public class TelaDashboard {
         Button btnFrota = criarBotaoMenu("Ambulâncias", "🚑");
         btnFrota.setOnAction(e -> {
             atualizarEstiloBotao(btnFrota);
-            setConteudoCentral(new GestaoAmbulanciasView().criarView());
+            setConteudoCentral(new GestaoAmbulanciasView(ambulanciaRepository, localizacaoRepository).criarView());
         });
 
         Button btnEquipe = criarBotaoMenu("Equipe", "👨‍⚕️");

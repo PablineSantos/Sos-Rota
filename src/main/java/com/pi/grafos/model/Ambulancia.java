@@ -36,5 +36,7 @@ public class Ambulancia {
     @ManyToOne
     @JoinColumn(name = "idUnidade")
     private Localizacao unidade;
+
+    
     
 }

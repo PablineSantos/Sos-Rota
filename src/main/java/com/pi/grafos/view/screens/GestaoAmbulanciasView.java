@@ -3,6 +3,7 @@
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -11,9 +12,20 @@ import javafx.scene.text.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.pi.grafos.model.Ambulancia;
+import com.pi.grafos.model.Localizacao;
+import com.pi.grafos.model.enums.AmbulanciaStatus;
+import com.pi.grafos.model.enums.Cargos;
+import com.pi.grafos.model.enums.TipoAmbulancia;
+import com.pi.grafos.repository.AmbulanciaRepository;
+import com.pi.grafos.repository.LocalizacaoRepository;
+import com.pi.grafos.service.FuncionarioService;
+
 import static com.pi.grafos.view.styles.AppStyles.*;
 
     public class GestaoAmbulanciasView {
+        private final AmbulanciaRepository ambulanciaRepository;
+        private final LocalizacaoRepository localizacaoRepository;
 
         // --- COMPONENTES DE UI ---
         private VBox contentArea;
@@ -45,7 +57,10 @@ import static com.pi.grafos.view.styles.AppStyles.*;
         private List<AmbulanciaMock> listaAmbulancias = new ArrayList<>();
         private List<EquipeMock> listaEquipesDisponiveis = new ArrayList<>();
 
-        public GestaoAmbulanciasView() {
+        public GestaoAmbulanciasView(AmbulanciaRepository ambulanciaRepository, LocalizacaoRepository localizacaoRepository) {
+            this.ambulanciaRepository = ambulanciaRepository;
+            this.localizacaoRepository = localizacaoRepository;
+
             carregarMocks();
         }
 
@@ -209,6 +224,48 @@ import static com.pi.grafos.view.styles.AppStyles.*;
 
             formCard.getChildren().addAll(lblAcao, grid, statusBox, btnSalvar);
             contentArea.getChildren().add(formCard);
+
+            btnSalvar.setOnAction(e -> {
+            try {
+                String placaAmbulancia = txtPlaca.getText();
+                String tipoAmbulancia = comboTipo.getValue();
+                String baseAmbulancia = comboBase.getValue();
+                //String equipeAmbulancia = comboEquipe.getValue();
+
+                if(placaAmbulancia.isEmpty() || tipoAmbulancia == null || baseAmbulancia == null){
+
+                    Alert alert = new Alert(AlertType.WARNING);
+                    alert.setTitle("Campos vazios");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Preencha todos os campos antes de salvar!");
+                    alert.showAndWait();
+                    return;
+                } 
+
+
+                    Ambulancia novaAmbulancia = new Ambulancia();
+                    novaAmbulancia.setPlaca(placaAmbulancia);
+                    novaAmbulancia.setTipoAmbulancia(TipoAmbulancia.fromDescricao(tipoAmbulancia));
+                    novaAmbulancia.setStatusAmbulancia(AmbulanciaStatus.DISPONIVEL);
+
+                    List<Localizacao> unidades = localizacaoRepository.findByNome(baseAmbulancia);
+                    /* 
+                    if (unidades.isEmpty()) {
+                        throw new RuntimeException("Base não encontrada!");
+                    }
+
+                    Localizacao unidade = unidades.get(0); 
+                    novaAmbulancia.setUnidade(unidade);
+                    */
+                    ambulanciaRepository.save(novaAmbulancia);
+
+                    new Alert(Alert.AlertType.INFORMATION, "Ambulância cadastrada com sucesso!").showAndWait();
+
+            } catch (Exception error) {
+                error.printStackTrace();
+            }
+            
+        });
         }
 
         // =============================================================================================
@@ -379,5 +436,6 @@ import static com.pi.grafos.view.styles.AppStyles.*;
             btn.setStyle(styleBase);
             btn.setOnMouseEntered(e -> btn.setStyle(styleHover));
             btn.setOnMouseExited(e -> btn.setStyle(styleBase));
+            
         }
     }
