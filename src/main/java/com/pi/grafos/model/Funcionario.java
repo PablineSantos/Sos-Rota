@@ -20,7 +20,7 @@ import lombok.Data;
 
     // Forma de rejeitar membros de equipe com funções duplicadas
     uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"equipe_id", "funcao"})
+        @UniqueConstraint(columnNames = {"id_equipe", "funcao"})
     }
 )
 @Data

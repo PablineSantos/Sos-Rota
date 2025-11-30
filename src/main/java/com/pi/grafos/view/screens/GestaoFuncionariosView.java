@@ -180,7 +180,7 @@ public class GestaoFuncionariosView {
         btnSalvar.setOnMouseExited(e -> btnSalvar.setStyle(styleNormal));
 
         btnSalvar.setOnAction(e -> {
-
+            try {
             String nomeFuncionario = txtNome.getText();
             String funcaoFunconario = comboCargo.getValue();
             Cargos cargoEnum = Cargos.valueOf(funcaoFunconario);
@@ -194,11 +194,17 @@ public class GestaoFuncionariosView {
                 alert.setHeaderText(null);
                 alert.setContentText("Preencha todos os campos antes de salvar!");
                 alert.showAndWait();
-                return;
+            } else {
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setTitle("Sucesso");
+                alert.setHeaderText(null);
+                alert.setContentText("Funcionário cadastrado com sucesso!");
+                alert.showAndWait();
+                funcionarioService.cadastrarFuncionario(nomeFuncionario, cargoEnum);
+
             }
 
-            try {
-            funcionarioService.cadastrarFuncionario(nomeFuncionario, cargoEnum);
+            
 
             } catch (Exception error) {
                 error.printStackTrace();
