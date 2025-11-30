@@ -193,24 +193,24 @@ public class TelaLogin {
             String nomeUsuario = txtEmail.getText();
             String senhaUsuario = txtPassword.getText();
 
-            if (nomeUsuario.isEmpty() || senhaUsuario.isEmpty()) {
-                Alert alert = new Alert(AlertType.WARNING);
-                alert.setTitle("Campos vazios");
-                alert.setHeaderText(null);
-                alert.setContentText("Preencha todos os campos de logar");
-                alert.showAndWait();
-            }
-
             try {
                 boolean loginSucesso = controller.logar(nomeUsuario, senhaUsuario);
 
-                if (loginSucesso == true) {
+                if (nomeUsuario.isEmpty() || senhaUsuario.isEmpty()) {
+                    Alert alert = new Alert(AlertType.WARNING);
+                    alert.setTitle("Campos vazios");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Preencha todos os campos de logar");
+                    alert.showAndWait();
+                } else if (loginSucesso == true) {
+                    
                     stage.setScene(telaDashboard.criarCena(stage));
+
                 } else {
                     Alert alert = new Alert(AlertType.WARNING);
                     alert.setTitle("Verifique seu login");
                     alert.setHeaderText(null);
-                    alert.setContentText("Verifique seu cadastro!");
+                    alert.setContentText("Verifique seu cadastro");
                     alert.showAndWait();
                 }
                 

@@ -51,7 +51,6 @@ public class TelaDashboard {
     @Autowired
     private FuncionarioService funcionarioService;
 
-    
     // --- CONFIGURAÇÕES VISUAIS ---
     private static final double LARGURA_SIDEBAR = 240;
     private static final double LARGURA_RESUMO = 320;
