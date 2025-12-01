@@ -13,11 +13,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "ambulancias")
-@Data
+@Getter
+@Setter
 public class Ambulancia {
     
     @Id
@@ -26,6 +28,9 @@ public class Ambulancia {
 
     @Column(unique = true, nullable = false)
     private String placa;
+
+    @Column(nullable = false)
+    private Boolean isAtivo;
 
     @Enumerated(EnumType.STRING)
     private TipoAmbulancia tipoAmbulancia;
@@ -36,7 +41,5 @@ public class Ambulancia {
     @ManyToOne
     @JoinColumn(name = "idUnidade")
     private Localizacao unidade;
-
-    
     
 }

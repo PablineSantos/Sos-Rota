@@ -11,7 +11,7 @@ import com.pi.grafos.repository.FuncionarioRepository;
 
 @Service
 public class FuncionarioService {
-    
+
     private final FuncionarioRepository repository;
 
     public FuncionarioService(FuncionarioRepository repository){

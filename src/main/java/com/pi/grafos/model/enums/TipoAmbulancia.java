@@ -18,15 +18,4 @@ public enum TipoAmbulancia {
     public String toString() {
         return descricao;
     }
-
-    // ✅ Adicionado método para converter String em TipoAmbulancia
-    public static TipoAmbulancia fromDescricao(String descricao) {
-        for (TipoAmbulancia t : TipoAmbulancia.values()) {
-            if (t.getDescricao().equalsIgnoreCase(descricao) ||
-                descricao.toUpperCase().contains(t.name())) {
-                return t;
-            }
-        }
-        throw new IllegalArgumentException("TipoAmbulancia inválido: " + descricao);
-    }
 }

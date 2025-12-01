@@ -4,10 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.pi.grafos.model.Ambulancia;
 import com.pi.grafos.model.Equipe;
 import com.pi.grafos.model.Funcionario;
 import com.pi.grafos.model.enums.Cargos;

@@ -240,12 +240,11 @@ import static com.pi.grafos.view.styles.AppStyles.*;
                     alert.setContentText("Preencha todos os campos antes de salvar!");
                     alert.showAndWait();
                     return;
-                } 
-
+                }
 
                     Ambulancia novaAmbulancia = new Ambulancia();
                     novaAmbulancia.setPlaca(placaAmbulancia);
-                    novaAmbulancia.setTipoAmbulancia(TipoAmbulancia.fromDescricao(tipoAmbulancia));
+                    novaAmbulancia.setTipoAmbulancia(TipoAmbulancia.valueOf(tipoAmbulancia));
                     novaAmbulancia.setStatusAmbulancia(AmbulanciaStatus.DISPONIVEL);
 
                     List<Localizacao> unidades = localizacaoRepository.findByNome(baseAmbulancia);
@@ -419,7 +418,7 @@ import static com.pi.grafos.view.styles.AppStyles.*;
             l.setTextFill(Color.web("#64748B"));
 
             input.setPrefHeight(45);
-            input.setMaxWidth(Double.MAX_VALUE); // IMPORTANTE: Permite que o input cresça dentro da célula
+            input.setMaxWidth(Double.MAX_VALUE);
             input.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 14px;");
 
             v.getChildren().addAll(l, input);

@@ -3,8 +3,7 @@ package com.pi.grafos.model.enums;
 public enum Cargos {
     MEDICO("Médico"),
     ENFERMEIRO("Enfermeiro"),
-    CONDUTOR("Condutor"),
-    CONTATO("Contato");
+    CONDUTOR("Condutor");
 
     private final String cargo;
 

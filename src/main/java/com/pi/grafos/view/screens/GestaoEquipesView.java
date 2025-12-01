@@ -82,7 +82,7 @@ public class GestaoEquipesView {
         toolBar.setAlignment(Pos.CENTER_LEFT);
         toolBar.setPadding(new Insets(10, 0, 20, 0));
 
-        // CORREÇÃO CRÍTICA: Impede que a barra de botões seja espremida
+        // Impede que a barra de botões seja espremida
         toolBar.setMinHeight(80);
         VBox.setVgrow(toolBar, Priority.NEVER);
 
@@ -159,6 +159,7 @@ public class GestaoEquipesView {
             }
         } else {
             adicionarLinhaMembro("CONDUTOR", null, false);
+            adicionarLinhaMembro("MÉDICO", null, false);
             adicionarLinhaMembro("ENFERMEIRO", null, false);
         }
 
@@ -320,7 +321,9 @@ public class GestaoEquipesView {
 
         // Combo de Função
         ComboBox<String> comboFuncao = new ComboBox<>();
+
         comboFuncao.setItems(FXCollections.observableArrayList("CONDUTOR", "ENFERMEIRO", "MÉDICO"));
+        
         comboFuncao.setPrefWidth(150);
         comboFuncao.setPrefHeight(40);
         comboFuncao.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px;");

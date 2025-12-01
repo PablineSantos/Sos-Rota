@@ -11,19 +11,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 
 @Entity
-@Table(name = "funcionarios",
-
-    // Forma de rejeitar membros de equipe com funções duplicadas
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"id_equipe", "funcao"})
-    }
-)
-@Data
+@Table(name = "funcionarios")
+@Getter
+@Setter
 public class Funcionario {
     
     @Id

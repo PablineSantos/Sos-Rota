@@ -2,6 +2,7 @@ package com.pi.grafos.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.pi.grafos.model.enums.Cargos;
 
@@ -12,11 +13,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "equipes")
-@Data
+@Getter
+@Setter
 public class Equipe {
     
     @Id
@@ -25,30 +28,32 @@ public class Equipe {
 
     private String nomeEquipe;
 
-    @OneToMany(mappedBy = "equipe", cascade = CascadeType.ALL)
+    private int maxMembros = 10;
+
+    @OneToMany(mappedBy = "equipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Funcionario> membros = new ArrayList<>();
 
-    public Funcionario getMedico() {
-        return getMembroPorCargos(Cargos.MEDICO);
-    }
+    public List<Funcionario> getMedico() { return getMembrosPorCargo(Cargos.MEDICO); }
+    public List<Funcionario> getCondutor() { return getMembrosPorCargo(Cargos.CONDUTOR); }
+    public List<Funcionario> getEnfermeiro() { return getMembrosPorCargo(Cargos.ENFERMEIRO); }
 
-    public Funcionario getCondutor() {
-        return getMembroPorCargos(Cargos.CONDUTOR);
-    }
-
-    public Funcionario getContato() {
-        return getMembroPorCargos(Cargos.CONTATO);
-    }
-
-    public Funcionario getEnfermeiro() {
-        return getMembroPorCargos(Cargos.ENFERMEIRO);
-    }
-
-    private Funcionario getMembroPorCargos(Cargos f) {
-        if (membros == null) return null;
+    private List<Funcionario> getMembrosPorCargo(Cargos cargo) {
+        if (membros == null) return List.of();
+    
         return membros.stream()
-                .filter(m -> m.getCargo() == f)
-                .findFirst()
-                .orElse(null);
+                .filter(m -> m.getCargo() == cargo)
+                .collect(Collectors.toList());
     }
+
+    public void addMembro(Funcionario funcionario) {
+        if (membros.size() >= maxMembros) {
+            throw new IllegalStateException(
+                "Equipe atingiu o número máximo de membros: " + maxMembros
+            );
+        }
+    
+        funcionario.setEquipe(this);
+        membros.add(funcionario);
+    }
+    
 }
