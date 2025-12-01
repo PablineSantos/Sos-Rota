@@ -1,27 +1,44 @@
  package com.pi.grafos.view.screens;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.text.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import com.pi.grafos.model.Ambulancia;
-import com.pi.grafos.model.Localizacao;
 import com.pi.grafos.model.enums.AmbulanciaStatus;
-import com.pi.grafos.model.enums.Cargos;
 import com.pi.grafos.model.enums.TipoAmbulancia;
 import com.pi.grafos.repository.AmbulanciaRepository;
 import com.pi.grafos.repository.LocalizacaoRepository;
-import com.pi.grafos.service.FuncionarioService;
+import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
+import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_CLARO;
+import static com.pi.grafos.view.styles.AppStyles.COR_VERMELHO_RESGATE;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_BOTAO2;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_CORPO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_PEQUENA;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_SUBTITULO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_TITULO;
+import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
 
-import static com.pi.grafos.view.styles.AppStyles.*;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 
     public class GestaoAmbulanciasView {
         private final AmbulanciaRepository ambulanciaRepository;
@@ -175,7 +192,7 @@ import static com.pi.grafos.view.styles.AppStyles.*;
 
             // 2. Tipo
             comboTipo = new ComboBox<>();
-            comboTipo.getItems().addAll("USA (UTI Móvel)", "USB (Suporte Básico)");
+            comboTipo.getItems().addAll("UTI Móvel", "Suporte Básico");
             comboTipo.setPromptText("Selecione o tipo...");
             comboTipo.setMaxWidth(Double.MAX_VALUE); // Garante que preencha a VBox
             if(ambulancia != null) comboTipo.setValue(ambulancia.tipo);
@@ -226,45 +243,50 @@ import static com.pi.grafos.view.styles.AppStyles.*;
             contentArea.getChildren().add(formCard);
 
             btnSalvar.setOnAction(e -> {
-            try {
-                String placaAmbulancia = txtPlaca.getText();
-                String tipoAmbulancia = comboTipo.getValue();
-                String baseAmbulancia = comboBase.getValue();
-                //String equipeAmbulancia = comboEquipe.getValue();
+                try {
+                    String placaAmbulancia = txtPlaca.getText();
+                    String tipoAmbulancia = comboTipo.getValue();
+                    String baseAmbulancia = comboBase.getValue();
+                    //String equipeAmbulancia = comboEquipe.getValue();
 
-                if(placaAmbulancia.isEmpty() || tipoAmbulancia == null || baseAmbulancia == null){
+                    if(placaAmbulancia.isEmpty() || tipoAmbulancia == null || baseAmbulancia == null){
 
-                    Alert alert = new Alert(AlertType.WARNING);
-                    alert.setTitle("Campos vazios");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Preencha todos os campos antes de salvar!");
-                    alert.showAndWait();
-                    return;
-                }
+                        Alert alert = new Alert(AlertType.WARNING);
+                        alert.setTitle("Campos vazios");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Preencha todos os campos antes de salvar!");
+                        alert.showAndWait();
+                        return;
 
-                    Ambulancia novaAmbulancia = new Ambulancia();
-                    novaAmbulancia.setPlaca(placaAmbulancia);
-                    novaAmbulancia.setTipoAmbulancia(TipoAmbulancia.valueOf(tipoAmbulancia));
-                    novaAmbulancia.setStatusAmbulancia(AmbulanciaStatus.DISPONIVEL);
+                    } else {
 
-                    List<Localizacao> unidades = localizacaoRepository.findByNome(baseAmbulancia);
-                    /* 
-                    if (unidades.isEmpty()) {
-                        throw new RuntimeException("Base não encontrada!");
+                        Ambulancia novaAmbulancia = new Ambulancia();
+                        novaAmbulancia.setPlaca(placaAmbulancia);
+                        novaAmbulancia.setTipoAmbulancia(TipoAmbulancia.fromDescricao(tipoAmbulancia));
+                        novaAmbulancia.setStatusAmbulancia(AmbulanciaStatus.DISPONIVEL);
+                        novaAmbulancia.setIsAtivo(true);
+                        
+                        ambulanciaRepository.save(novaAmbulancia);
+
+                        new Alert(Alert.AlertType.INFORMATION, "Ambulância cadastrada com sucesso!").showAndWait();
+
+                        /*
+                        List<Localizacao> unidades = localizacaoRepository.findByNome(baseAmbulancia);
+                        
+                        if (unidades.isEmpty()) {
+                            throw new RuntimeException("Base não encontrada!");
+                        }
+
+                        Localizacao unidade = unidades.get(0); 
+                        novaAmbulancia.setUnidade(unidade);
+                        */
                     }
 
-                    Localizacao unidade = unidades.get(0); 
-                    novaAmbulancia.setUnidade(unidade);
-                    */
-                    ambulanciaRepository.save(novaAmbulancia);
-
-                    new Alert(Alert.AlertType.INFORMATION, "Ambulância cadastrada com sucesso!").showAndWait();
-
-            } catch (Exception error) {
-                error.printStackTrace();
-            }
-            
-        });
+                    
+                } catch (Exception error) {
+                    error.printStackTrace();
+                }
+            });
         }
 
         // =============================================================================================
