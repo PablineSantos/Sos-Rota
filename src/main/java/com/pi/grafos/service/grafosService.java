@@ -10,12 +10,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
+import com.pi.grafos.model.Cidade;
+import com.pi.grafos.repository.CidadeRepository;
+
 @Service
 public class grafosService {
+
+    @Autowired
+    private CidadeRepository cidadeRepository;
 
     // =========================
     // CLASSE ARESTA
@@ -46,13 +53,13 @@ public class grafosService {
 
         private Map<Integer, List<Aresta>> caminho = new HashMap<>();
 
-        public void addAresta(int origem, int destino, double distancia) {
-            caminho.putIfAbsent(origem, new ArrayList<>());
-            caminho.putIfAbsent(destino, new ArrayList<>());
+        public void addAresta(Long origem, Long destino, double distancia) {
+        caminho.putIfAbsent(origem.intValue(), new ArrayList<>()); 
+        caminho.putIfAbsent(destino.intValue(), new ArrayList<>());
 
-            caminho.get(origem).add(new Aresta(destino, distancia));
-            caminho.get(destino).add(new Aresta(origem, distancia));
-        }
+        caminho.get(origem.intValue()).add(new Aresta(destino.intValue(), distancia));
+        caminho.get(destino.intValue()).add(new Aresta(origem.intValue(), distancia));
+    }
 
         public Map<Integer, List<Aresta>> getCaminho() {
             return caminho;
@@ -131,31 +138,55 @@ public class grafosService {
     @Value("classpath:ruas_conexoes.csv")
     private Resource recurso;
 
-    public ConstruirGrafo carregarGrafo() {
+public ConstruirGrafo carregarGrafo(Long idCidade) {
 
-        ConstruirGrafo grafo = new ConstruirGrafo();
+    // Busca a cidade no banco
+    Cidade cidade = cidadeRepository.findByIdCidade(idCidade)
+            .orElseThrow(() -> new RuntimeException("Cidade não encontrada"));
 
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(recurso.getInputStream()))) {
+    // Cria o grafo
+    ConstruirGrafo grafo = new ConstruirGrafo();
 
-            String line = br.readLine(); 
-            line = br.readLine();        
+    // Adiciona todas as ruas ao grafo
+    cidade.getRuas().forEach(rua -> {
+        grafo.addAresta(
+            rua.getOrigem().getIdLocal(),       // Long
+            rua.getDestino().getIdLocal(),      // Long
+            rua.getDistancia().doubleValue()    // double
+        );
+    });
 
-            while (line != null) {
-                String[] vet = line.split(",");
+    return grafo;
+}
 
-                int origem = Integer.parseInt(vet[1]);
-                int destino = Integer.parseInt(vet[2]);
-                double distancia = Double.parseDouble(vet[3]);
 
-                grafo.addAresta(origem, destino, distancia);
+    public ConstruirGrafo carregarGrafoDeTexto(String csv) {
 
-                line = br.readLine();
-            }
+    ConstruirGrafo grafo = new ConstruirGrafo();
 
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao ler arquivo CSV", e);
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(
+            new java.io.ByteArrayInputStream(csv.getBytes())))) {
+
+        String line = br.readLine(); 
+        line = br.readLine();        
+
+        while (line != null) {
+            String[] vet = line.split(",");
+
+            int origem = Integer.parseInt(vet[1]);
+            int destino = Integer.parseInt(vet[2]);
+            double distancia = Double.parseDouble(vet[3]);
+
+            grafo.addAresta(origem, destino, distancia);
+
+            line = br.readLine();
         }
 
-        return grafo;
+    } catch (Exception e) {
+        throw new RuntimeException("Erro ao ler conteúdo CSV", e);
     }
+
+    return grafo;
+}
+
 }
