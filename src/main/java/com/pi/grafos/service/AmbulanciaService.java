@@ -22,7 +22,10 @@ public class AmbulanciaService {
     }
 
     @Transactional
-    public Ambulancia cadastrar(String placa, TipoAmbulancia tipo, Localizacao unidade) {
+    public Ambulancia cadastrar(
+        String placa, 
+        TipoAmbulancia tipo, 
+        Localizacao unidade) {
         // 1. Validate inputs
         if (placa == null || placa.trim().isEmpty()) {
             throw new IllegalArgumentException("A placa da ambulância é obrigatória.");

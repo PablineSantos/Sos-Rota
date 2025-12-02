@@ -259,13 +259,12 @@ import javafx.scene.text.Text;
                         return;
 
                     } else {
-
                         Ambulancia novaAmbulancia = new Ambulancia();
                         novaAmbulancia.setPlaca(placaAmbulancia);
                         novaAmbulancia.setTipoAmbulancia(TipoAmbulancia.fromDescricao(tipoAmbulancia));
                         novaAmbulancia.setStatusAmbulancia(AmbulanciaStatus.DISPONIVEL);
                         novaAmbulancia.setIsAtivo(true);
-                        
+
                         ambulanciaRepository.save(novaAmbulancia);
 
                         new Alert(Alert.AlertType.INFORMATION, "Ambulância cadastrada com sucesso!").showAndWait();

@@ -35,10 +35,6 @@ public class Equipe {
 
     public List<Funcionario> getMedico() { return getMembrosPorCargo(Cargos.MEDICO); }
     public List<Funcionario> getCondutor() { return getMembrosPorCargo(Cargos.CONDUTOR); }
-<<<<<<< HEAD
-=======
-    public List<Funcionario> getContato() { return getMembrosPorCargo(Cargos.CONTATO); }
->>>>>>> pabline/grafos
     public List<Funcionario> getEnfermeiro() { return getMembrosPorCargo(Cargos.ENFERMEIRO); }
 
     private List<Funcionario> getMembrosPorCargo(Cargos cargo) {
