@@ -177,7 +177,7 @@ public ConstruirGrafo carregarGrafo(Long idCidade) {
             int destino = Integer.parseInt(vet[2]);
             double distancia = Double.parseDouble(vet[3]);
 
-            grafo.addAresta(origem, destino, distancia);
+            //grafo.addAresta(origem, destino, distancia);
 
             line = br.readLine();
         }
