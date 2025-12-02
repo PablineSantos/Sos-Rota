@@ -5,17 +5,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.pi.grafos.controller.MainController;
-import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
-import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_PRETO;
-import static com.pi.grafos.view.styles.AppStyles.FONTE_BOTAO;
-import static com.pi.grafos.view.styles.AppStyles.FONTE_PEQUENA;
-import static com.pi.grafos.view.styles.AppStyles.FONTE_SUBTITULO;
-import static com.pi.grafos.view.styles.AppStyles.FONTE_TITULO;
-import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
+import static com.pi.grafos.view.styles.AppStyles.*;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
+import javafx.scene.Parent; // IMPORTANTE
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -49,49 +43,49 @@ public class TelaCadastro {
     private TelaLogin telaLogin;
 
     @Autowired
-    @Lazy 
+    @Lazy
     private TelaDashboard telaDashboard;
 
     @Autowired
     private MainController mainController;
 
-    public Scene criarCena(Stage stage) {
+    // MUDANÇA: Retorna Parent, não Scene
+    public Parent criarConteudo(Stage stage) {
 
         // --- 1. PAINEL ESQUERDO (Formulário) ---
         VBox cadastroPanel = new VBox(20);
         cadastroPanel.setPadding(new Insets(40));
         cadastroPanel.setAlignment(Pos.CENTER);
         cadastroPanel.setStyle("-fx-background-color: white");
+        cadastroPanel.setMaxWidth(500);
+        cadastroPanel.setMinWidth(400);
 
         // Logo
         ImageView logoView = new ImageView();
         try {
             Image logoImage = new Image(getClass().getResourceAsStream("/images/logo.png"));
             logoView.setImage(logoImage);
-            logoView.setFitWidth(120); // Levemente menor no cadastro para caber mais campos
+            logoView.setFitWidth(120);
             logoView.setPreserveRatio(true);
         } catch (Exception e) { }
 
-        // Título
         Label lblTitulo = new Label("Cadastrar");
         lblTitulo.setFont(FONTE_TITULO);
         lblTitulo.setTextFill(COR_AZUL_NOTURNO);
 
-        // --- CONTAINER DOS CAMPOS ---
+        // --- CAMPOS ---
         VBox formContainer = new VBox(10);
         formContainer.setAlignment(Pos.CENTER_LEFT);
         formContainer.setMaxWidth(Double.MAX_VALUE);
 
-        // Campo Usuário
         Label lblUser = new Label("Nome de Usuário");
         lblUser.setFont(FONTE_SUBTITULO);
         lblUser.setTextFill(COR_TEXTO_PRETO);
 
         TextField txtUser = new TextField();
         txtUser.setPrefHeight(40);
-        estilizarCampo(txtUser); // Método auxiliar lá embaixo (Clean Code)
+        estilizarCampo(txtUser);
 
-        // Campo Senha
         Label lblPass = new Label("Senha");
         lblPass.setFont(FONTE_SUBTITULO);
         lblPass.setTextFill(COR_TEXTO_PRETO);
@@ -101,7 +95,6 @@ public class TelaCadastro {
         txtPass.setPromptText("••••••••");
         estilizarCampo(txtPass);
 
-        // Campo Confirmar Senha
         Label lblConfirm = new Label("Confirmar Senha");
         lblConfirm.setFont(FONTE_SUBTITULO);
         lblConfirm.setTextFill(COR_TEXTO_PRETO);
@@ -111,11 +104,7 @@ public class TelaCadastro {
         txtConfirm.setPromptText("••••••••");
         estilizarCampo(txtConfirm);
 
-        Label lblErro = new Label();
-        lblErro.setTextFill(Color.RED);
-        lblErro.setFont(FONTE_PEQUENA);
-
-        formContainer.getChildren().addAll(lblUser, txtUser, lblPass, txtPass, lblConfirm, txtConfirm, lblErro);
+        formContainer.getChildren().addAll(lblUser, txtUser, lblPass, txtPass, lblConfirm, txtConfirm);
 
         // --- BOTÃO REGISTRAR ---
         Button btnCadastrar = new Button("Registrar");
@@ -124,29 +113,22 @@ public class TelaCadastro {
         btnCadastrar.setMaxWidth(Double.MAX_VALUE);
         btnCadastrar.setStyle("-fx-background-color: " + HEX_VERMELHO + "; -fx-text-fill: white; -fx-background-radius: 4; -fx-cursor: hand;");
 
-        // --- LINK VOLTAR PARA LOGIN ---
+        // --- LINK VOLTAR ---
         Hyperlink linkLogin = new Hyperlink("Já tem uma conta? Faça Login");
         linkLogin.setFont(FONTE_PEQUENA);
         linkLogin.setTextFill(Color.web("#666666"));
         linkLogin.setBorder(Border.EMPTY);
-        linkLogin.setStyle("-fx-underline: true;");
+        linkLogin.setStyle("-fx-underline: true; -fx-cursor: hand;");
 
-        // Ação de Voltar
+        // === AÇÃO DE NAVEGAÇÃO SEGURA ===
         linkLogin.setOnAction(e -> {
-            stage.setScene(telaLogin.criarCena(stage));
-
-            // 2. Hack do Toggle para garantir tela cheia
-            stage.setMaximized(false);
-            stage.setMaximized(true);
-            stage.centerOnScreen();
-
-
+            // Volta para o Login trocando o root da scene atual
+            stage.getScene().setRoot(telaLogin.criarConteudo(stage));
         });
 
-        // Espaçador
+        // Copyright
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
-
         Label lblCopyright = new Label("© 2025 Vitalis Tech. Todos os direitos reservados.");
         lblCopyright.setFont(Font.font("Poppins", FontWeight.NORMAL, 10));
         lblCopyright.setTextFill(Color.web("#999999"));
@@ -156,56 +138,52 @@ public class TelaCadastro {
         // --- 2. PAINEL DIREITO (Imagem) ---
         Region backgroundRegion = criarBackgroundImagem();
 
-        // --- MONTAGEM FINAL ---
-        HBox root = new HBox();
-        root.getChildren().addAll(cadastroPanel, backgroundRegion);
-        HBox.setHgrow(cadastroPanel, Priority.ALWAYS);
-        HBox.setHgrow(backgroundRegion, Priority.ALWAYS);
-        cadastroPanel.setMaxWidth(500);
-        cadastroPanel.setMinWidth(400);
-
-        // Lógica de Registro
+        // --- LÓGICA DE REGISTRO ---
         btnCadastrar.setOnAction(e -> {
-            
             String nomeUsuario = txtUser.getText();
             String senhaUsuario = txtPass.getText();
+            String confirmSenha = txtConfirm.getText();
 
             if (nomeUsuario.isEmpty() || senhaUsuario.isEmpty()) {
-                Alert alert = new Alert(AlertType.WARNING);
-                alert.setTitle("Campos vazios");
-                alert.setHeaderText(null);
-                alert.setContentText("Preencha todos os campos antes de salvar!");
-                alert.showAndWait();
+                mostrarAlerta("Campos vazios", "Preencha todos os campos antes de salvar!");
+                return;
             }
 
+            // Nota: Lógica original do usuario mantida (verificando se loga para ver se existe)
+            // Idealmente deveria ter um metodo existeUsuario(nome)
             if (mainController.logar(nomeUsuario, senhaUsuario)) {
-                Alert alert = new Alert(AlertType.WARNING);
-                alert.setTitle("Usuário existente");
-                alert.setHeaderText(null);
-                alert.setContentText("Usuário já existente.");
-                alert.showAndWait();
+                mostrarAlerta("Usuário existente", "Este usuário já possui cadastro.");
             } else {
-
-                if (nomeUsuario.isEmpty() || senhaUsuario.isEmpty()) return;
-
-                if (txtPass.getText().equals(txtConfirm.getText()) && !txtUser.getText().isEmpty()) {
-                    lblErro.setText("Usuário registrado com sucesso!");
-                    lblErro.setTextFill(Color.GREEN);
-                    
+                if (senhaUsuario.equals(confirmSenha)) {
+                    // Cadastra
                     mainController.cadastrarUsuario(nomeUsuario, senhaUsuario);
-                    stage.setScene(telaDashboard.criarCena(stage));
+                    mostrarAlerta("Sucesso", "Usuário cadastrado com sucesso! Entrando...");
 
+                    // === VAI PARA DASHBOARD SEM PISCAR A TELA ===
+                    stage.getScene().setRoot(telaDashboard.criarConteudo(stage));
                 } else {
-                    lblErro.setText("Senhas não conferem ou campos vazios.");
-                    lblErro.setTextFill(Color.RED);
+                    mostrarAlerta("Erro de Senha", "As senhas não conferem.");
                 }
             }
         });
 
-        return new Scene(root, 1000, 700);
+        // MONTAGEM ROOT
+        HBox root = new HBox();
+        root.getChildren().addAll(cadastroPanel, backgroundRegion);
+        HBox.setHgrow(cadastroPanel, Priority.ALWAYS);
+        HBox.setHgrow(backgroundRegion, Priority.ALWAYS);
+
+        return root;
     }
 
-    // Métodos auxiliares para evitar repetição de código (DRY Principle)
+    private void mostrarAlerta(String titulo, String msg) {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.showAndWait();
+    }
+
     private void estilizarCampo(Control campo) {
         campo.setStyle("-fx-border-color: #CBD5E1; -fx-border-radius: 4; -fx-background-radius: 4;");
     }
