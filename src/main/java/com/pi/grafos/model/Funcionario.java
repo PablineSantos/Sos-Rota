@@ -30,6 +30,9 @@ public class Funcionario {
     @Enumerated(EnumType.STRING)
     private Cargos cargo;
 
+    private String email;
+    private String telefone;
+
     @ManyToOne
     @JoinColumn(name = "idEquipe")
     private Equipe equipe;

@@ -5,17 +5,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.pi.grafos.controller.MainController;
-import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
-import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_PRETO;
-import static com.pi.grafos.view.styles.AppStyles.FONTE_BOTAO;
-import static com.pi.grafos.view.styles.AppStyles.FONTE_PEQUENA;
-import static com.pi.grafos.view.styles.AppStyles.FONTE_SUBTITULO;
-import static com.pi.grafos.view.styles.AppStyles.FONTE_TITULO; // Import restaurado
-import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
+import static com.pi.grafos.view.styles.AppStyles.*; // Seus imports estáticos de estilo
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
+import javafx.scene.Parent; // <--- IMPORTANTE: Usamos Parent, não Scene
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -42,14 +36,15 @@ public class TelaLogin {
     private MainController controller;
 
     @Autowired
-    @Lazy // Evita ciclo de dependência com o Dashboard
-    private TelaDashboard telaDashboard;
-
-    @Autowired
-    @Lazy // Evita ciclo de dependência com o Cadastro
+    @Lazy // Evita ciclo de dependência: Login precisa de Cadastro, Cadastro precisa de Login
     private TelaCadastro telaCadastro;
 
-    public Scene criarCena(Stage stage) {
+    @Autowired
+    @Lazy // Evita ciclo de dependência
+    private TelaDashboard telaDashboard;
+
+    // MUDANÇA: O método retorna o LEIAUTE (Parent), não a JANELA (Scene)
+    public Parent criarConteudo(Stage stage) {
 
         // --- 1. PAINEL PRINCIPAL (Esquerdo) ---
         VBox loginPanel = new VBox(20);
@@ -57,21 +52,20 @@ public class TelaLogin {
         loginPanel.setAlignment(Pos.CENTER);
         loginPanel.setStyle("-fx-background-color: white");
 
-        // --- BLOCO 1: LOGO E TÍTULO ---
+        // --- LOGO E TÍTULO ---
         ImageView logoView = new ImageView();
         try {
-            // Certifique-se que o caminho da imagem está correto em src/main/resources
             Image logoImage = new Image(getClass().getResourceAsStream("/images/logo.png"));
             logoView.setImage(logoImage);
             logoView.setFitWidth(150);
             logoView.setPreserveRatio(true);
-        } catch (Exception e) { /* Log erro se necessário */ }
+        } catch (Exception e) { /* Ignora erro de imagem */ }
 
         Label lblLogin = new Label("Login");
         lblLogin.setFont(FONTE_TITULO);
         lblLogin.setTextFill(COR_AZUL_NOTURNO);
 
-        // --- BLOCO 2: FORMULÁRIO ---
+        // --- FORMULÁRIO ---
         VBox formContainer = new VBox(10);
         formContainer.setAlignment(Pos.CENTER_LEFT);
         formContainer.setMaxWidth(Double.MAX_VALUE);
@@ -94,132 +88,93 @@ public class TelaLogin {
         txtPassword.setPrefHeight(35);
         txtPassword.setStyle("-fx-border-color: #CBD5E1; -fx-border-radius: 4; -fx-background-radius: 4;");
 
-        Label lblMensagemErro = new Label();
-        lblMensagemErro.setTextFill(Color.RED);
-        lblMensagemErro.setFont(FONTE_PEQUENA);
+        formContainer.getChildren().addAll(lblEmail, txtEmail, lblPassword, txtPassword);
 
-        formContainer.getChildren().addAll(lblEmail, txtEmail, lblPassword, txtPassword, lblMensagemErro);
-
-        // --- BLOCO 3: AÇÕES (Botão Logar + Link Cadastro) ---
-
-        // Botão Logar
+        // --- AÇÕES ---
         Button btnLogar = new Button("Log In");
         btnLogar.setFont(FONTE_BOTAO);
         btnLogar.setPrefHeight(45);
         btnLogar.setMaxWidth(Double.MAX_VALUE);
-        btnLogar.setStyle(
-                "-fx-background-color: " + HEX_VERMELHO + "; " +
-                        "-fx-text-fill: white; " +
-                        "-fx-background-radius: 4; " + // Voltamos para 4 (Consistência visual)
-                        "-fx-cursor: hand;"
-        );
+        btnLogar.setStyle("-fx-background-color: " + HEX_VERMELHO + "; -fx-text-fill: white; -fx-background-radius: 4; -fx-cursor: hand;");
 
-        // --- HIPERLINK PARA CADASTRO (Restaurado) ---
+        // Link Cadastro
         Hyperlink linkCadastro = new Hyperlink("Não tem uma conta? Registre-se agora");
         linkCadastro.setFont(FONTE_PEQUENA);
-        // Usamos vermelho para chamar atenção, ou pode ser azul/cinza conforme preferir
         linkCadastro.setTextFill(COR_AZUL_NOTURNO);
         linkCadastro.setBorder(Border.EMPTY);
         linkCadastro.setStyle("-fx-underline: false; -fx-cursor: hand;");
 
-        // Efeito visual no hover
         linkCadastro.setOnMouseEntered(e -> linkCadastro.setStyle("-fx-underline: true; -fx-cursor: hand;"));
         linkCadastro.setOnMouseExited(e -> linkCadastro.setStyle("-fx-underline: false; -fx-cursor: hand;"));
 
+        // === AÇÃO DE NAVEGAÇÃO SEGURA (SEM PISCAR) ===
         linkCadastro.setOnAction(e -> {
-
-            stage.setScene(telaCadastro.criarCena(stage));
-
-            // 2. Hack do Toggle para garantir tela cheia
-            stage.setMaximized(false);
-            stage.setMaximized(true);
-            stage.centerOnScreen();
-
+            // Troca apenas o conteúdo da janela atual
+            stage.getScene().setRoot(telaCadastro.criarConteudo(stage));
         });
 
-        // Espaçador para o rodapé
+        // Copyright
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
-
         Label lblCopyright = new Label("© 2025 Vitalis Tech. Todos os direitos reservados.");
         lblCopyright.setFont(Font.font("Poppins", FontWeight.NORMAL, 10));
         lblCopyright.setTextFill(Color.web("#999999"));
 
-        // --- MONTAGEM DO PAINEL ESQUERDO ---
-        loginPanel.getChildren().addAll(
-                logoView,
-                lblLogin,
-                formContainer,
-                btnLogar,      
-                linkCadastro,  
-                spacer,
-                lblCopyright
-        );
+        loginPanel.getChildren().addAll(logoView, lblLogin, formContainer, btnLogar, linkCadastro, spacer, lblCopyright);
+        loginPanel.setMaxWidth(500);
+        loginPanel.setMinWidth(400);
 
         // --- 2. PAINEL DIREITO (Imagem) ---
         Region backgroundRegion = new Region();
         try {
-            // Tenta carregar imagem local
             Image imgBackground = new Image(getClass().getResourceAsStream("/images/ambulancias.jpeg"));
-            javafx.scene.layout.BackgroundSize bgSize = new javafx.scene.layout.BackgroundSize(
-                    1.0, 1.0, true, true, false, true // Cover mode
-            );
-            javafx.scene.layout.BackgroundImage bgImage = new javafx.scene.layout.BackgroundImage(
-                    imgBackground,
-                    javafx.scene.layout.BackgroundRepeat.NO_REPEAT,
-                    javafx.scene.layout.BackgroundRepeat.NO_REPEAT,
-                    javafx.scene.layout.BackgroundPosition.CENTER,
-                    bgSize
-            );
+            javafx.scene.layout.BackgroundSize bgSize = new javafx.scene.layout.BackgroundSize(1.0, 1.0, true, true, false, true);
+            javafx.scene.layout.BackgroundImage bgImage = new javafx.scene.layout.BackgroundImage(imgBackground, javafx.scene.layout.BackgroundRepeat.NO_REPEAT, javafx.scene.layout.BackgroundRepeat.NO_REPEAT, javafx.scene.layout.BackgroundPosition.CENTER, bgSize);
             backgroundRegion.setBackground(new javafx.scene.layout.Background(bgImage));
         } catch (Exception e) {
-            // Fallback cor sólida
             backgroundRegion.setStyle("-fx-background-color: #1E293B;");
         }
-
-        // --- 3. MONTAGEM FINAL DA CENA ---
-        HBox root = new HBox();
-        root.getChildren().addAll(loginPanel, backgroundRegion);
-
-        HBox.setHgrow(loginPanel, Priority.ALWAYS);
-        HBox.setHgrow(backgroundRegion, Priority.ALWAYS);
-
-        // Limites para não esticar demais o login
-        loginPanel.setMaxWidth(500);
-        loginPanel.setMinWidth(400);
 
         // --- LÓGICA DE LOGIN ---
         btnLogar.setOnAction(event -> {
             String nomeUsuario = txtEmail.getText();
             String senhaUsuario = txtPassword.getText();
 
+            if (nomeUsuario.isEmpty() || senhaUsuario.isEmpty()) {
+                mostrarAlerta("Campos vazios", "Preencha todos os campos do login!");
+                return;
+            }
+
             try {
                 boolean loginSucesso = controller.logar(nomeUsuario, senhaUsuario);
 
-                if (nomeUsuario.isEmpty() || senhaUsuario.isEmpty()) {
-                    Alert alert = new Alert(AlertType.WARNING);
-                    alert.setTitle("Campos vazios");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Preencha todos os campos de logar");
-                    alert.showAndWait();
-                } else if (loginSucesso == true) {
-                    
-                    stage.setScene(telaDashboard.criarCena(stage));
-
+                if (loginSucesso) {
+                    // === NAVEGAÇÃO SEGURA PARA DASHBOARD ===
+                    // Injeta o layout do Dashboard na cena atual
+                    stage.getScene().setRoot(telaDashboard.criarConteudo(stage));
                 } else {
-                    Alert alert = new Alert(AlertType.WARNING);
-                    alert.setTitle("Verifique seu login");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Verifique seu cadastro");
-                    alert.showAndWait();
+                    mostrarAlerta("Login Falhou", "Usuário ou senha inválidos.");
                 }
-                
             } catch (Exception e) {
-                lblMensagemErro.setText("Erro de conexão: " + e.getMessage());
+                mostrarAlerta("Erro Crítico", "Erro de conexão: " + e.getMessage());
                 e.printStackTrace();
             }
         });
 
-        return new Scene(root, 1000, 700);
+        // MONTAGEM DO ROOT
+        HBox root = new HBox();
+        root.getChildren().addAll(loginPanel, backgroundRegion);
+        HBox.setHgrow(loginPanel, Priority.ALWAYS);
+        HBox.setHgrow(backgroundRegion, Priority.ALWAYS);
+
+        return root; // Retorna o HBox (Parent), não a Scene
+    }
+
+    private void mostrarAlerta(String titulo, String msg) {
+        Alert alert = new Alert(AlertType.WARNING);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.showAndWait();
     }
 }
