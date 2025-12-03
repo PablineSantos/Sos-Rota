@@ -3,6 +3,7 @@ package com.pi.grafos.view.screens;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -69,6 +70,12 @@ public class TelaDashboard {
     private Region centerMap;     // O mapa original
     private List<Button> botoesMenu = new ArrayList<>(); // Lista para controlar qual botão está ativo
 
+    private final ObjectProvider<GestaoEquipesView> gestaoEquipesProvider;
+
+    public TelaDashboard(ObjectProvider<GestaoEquipesView> gestaoEquipesProvider) {
+        this.gestaoEquipesProvider = gestaoEquipesProvider;
+    }
+
     public Scene criarCena(Stage stage) {
 
         // =============================================================================================
@@ -118,9 +125,11 @@ public class TelaDashboard {
         });
 
         Button btnEquipe = criarBotaoMenu("Equipe", "👨‍⚕️");
+                
         btnEquipe.setOnAction(e -> {
             atualizarEstiloBotao(btnEquipe);
-            setConteudoCentral(new GestaoEquipesView().criarView());
+            GestaoEquipesView view = gestaoEquipesProvider.getObject();
+            setConteudoCentral(view.criarView());
         });
 
         Button btnColaborador = criarBotaoMenu("Colaboradores", "⚕");
