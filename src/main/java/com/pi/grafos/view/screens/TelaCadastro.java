@@ -129,6 +129,7 @@ public class TelaCadastro {
         // Copyright
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
+
         Label lblCopyright = new Label("© 2025 Vitalis Tech. Todos os direitos reservados.");
         lblCopyright.setFont(Font.font("Poppins", FontWeight.NORMAL, 10));
         lblCopyright.setTextFill(Color.web("#999999"));

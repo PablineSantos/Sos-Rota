@@ -55,6 +55,7 @@ public class TelaLogin {
         // --- LOGO E TÍTULO ---
         ImageView logoView = new ImageView();
         try {
+            // Certifique-se que o caminho da imagem está correto em src/main/resources
             Image logoImage = new Image(getClass().getResourceAsStream("/images/logo.png"));
             logoView.setImage(logoImage);
             logoView.setFitWidth(150);
@@ -100,10 +101,12 @@ public class TelaLogin {
         // Link Cadastro
         Hyperlink linkCadastro = new Hyperlink("Não tem uma conta? Registre-se agora");
         linkCadastro.setFont(FONTE_PEQUENA);
+        // Usamos vermelho para chamar atenção, ou pode ser azul/cinza conforme preferir
         linkCadastro.setTextFill(COR_AZUL_NOTURNO);
         linkCadastro.setBorder(Border.EMPTY);
         linkCadastro.setStyle("-fx-underline: false; -fx-cursor: hand;");
 
+        // Efeito visual no hover
         linkCadastro.setOnMouseEntered(e -> linkCadastro.setStyle("-fx-underline: true; -fx-cursor: hand;"));
         linkCadastro.setOnMouseExited(e -> linkCadastro.setStyle("-fx-underline: false; -fx-cursor: hand;"));
 

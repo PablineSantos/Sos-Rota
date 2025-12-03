@@ -130,6 +130,7 @@ public class GestaoFuncionariosView {
         if(funcionario != null) txtTel.setText(funcionario.getTelefone());
         VBox boxTel = criarCampoInput("Telefone", txtTel);
 
+        // Faz os dois crescerem igualmente
         HBox.setHgrow(boxEmail, Priority.ALWAYS);
         HBox.setHgrow(boxTel, Priority.ALWAYS);
         rowContato.getChildren().addAll(boxEmail, boxTel);
@@ -180,6 +181,7 @@ public class GestaoFuncionariosView {
             } catch (Exception ex) {
                 mostrarAlerta(AlertType.ERROR, "Erro ao Salvar", ex.getMessage());
             }
+            
         });
 
         formCard.getChildren().addAll(lblAcao, boxNome, boxCargo, rowContato, btnSalvar);
@@ -264,16 +266,15 @@ public class GestaoFuncionariosView {
         String corBtn = modo.equals("EDITAR") ? "#F59E0B" : "#EF4444";
         btnAcao.setStyle("-fx-background-color: " + corBtn + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;");
 
-        // Adicionei a ação diretamente no botão para garantir que o clique nele funcione
-        btnAcao.setOnAction(e -> {
-            executarAcaoCard(modo, func);
-        });
+        card.getChildren().addAll(iconStack, info, btnAcao);
 
         card.setOnMouseClicked(e -> {
             executarAcaoCard(modo, func);
         });
 
-        card.getChildren().addAll(iconStack, info, btnAcao);
+        // (Ação no Card (Opcional, se quiser c)licar fora do botão)
+        card.setOnMouseClicked(e -> executarAcaoCard(modo, func));
+
         return card;
     }
 

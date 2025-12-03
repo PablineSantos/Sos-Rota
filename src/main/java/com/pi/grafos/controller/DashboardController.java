@@ -39,7 +39,6 @@ public class DashboardController {
                 System.err.println("Erro de cadastro, verifique os campos");
                 return;
             } 
-            
 
 
         } catch (Exception e) {

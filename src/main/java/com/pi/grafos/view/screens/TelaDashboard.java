@@ -3,6 +3,7 @@ package com.pi.grafos.view.screens;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -59,6 +60,7 @@ public class TelaDashboard {
     @Autowired
     private LocalizacaoRepository localizacaoRepository;
 
+
     // --- CONFIGURAÇÕES VISUAIS ---
     private static final double LARGURA_SIDEBAR = 240;
     private static final double LARGURA_RESUMO = 320;
@@ -67,6 +69,13 @@ public class TelaDashboard {
     private HBox rootLayout;      // O layout principal que segura tudo
     private Region centerMap;     // O mapa original
     private List<Button> botoesMenu = new ArrayList<>(); // Lista para controlar qual botão está ativo
+
+    private final ObjectProvider<GestaoEquipesView> gestaoEquipesProvider;
+
+    public TelaDashboard(ObjectProvider<GestaoEquipesView> gestaoEquipesProvider) {
+        this.gestaoEquipesProvider = gestaoEquipesProvider;
+    }
+
 
     // MUDANÇA 2: O método agora retorna Parent e se chama criarConteudo
     public Parent criarConteudo(Stage stage) {
@@ -97,14 +106,17 @@ public class TelaDashboard {
 
         // --- BOTÕES DE NAVEGAÇÃO ---
         Button btnDashboard = criarBotaoMenu("Dashboard", "🏠");
+        // Ação: Voltar para o Mapa e pintar de vermelho
         btnDashboard.setOnAction(e -> {
             atualizarEstiloBotao(btnDashboard);
             setConteudoCentral(centerMap);
         });
 
         Button btnNovaOcorrencia = criarBotaoMenu("Nova Ocorrência", "➕");
+        // Ação: Mostrar formulário de cadastro
         btnNovaOcorrencia.setOnAction(e -> {
             atualizarEstiloBotao(btnNovaOcorrencia);
+            // Chama o formulário de nova ocorrência
             setConteudoCentral(new FormularioOcorrenciaView().criarView());
         });
 
@@ -116,9 +128,11 @@ public class TelaDashboard {
         });
 
         Button btnEquipe = criarBotaoMenu("Equipe", "👨‍⚕️");
+
         btnEquipe.setOnAction(e -> {
             atualizarEstiloBotao(btnEquipe);
-            setConteudoCentral(new GestaoEquipesView().criarView());
+            GestaoEquipesView view = gestaoEquipesProvider.getObject();
+            setConteudoCentral(view.criarView());
         });
 
         Button btnColaborador = criarBotaoMenu("Colaboradores", "⚕");
@@ -133,6 +147,8 @@ public class TelaDashboard {
             setConteudoCentral(criarPlaceholderFormulario("Relatório"));
         });
 
+
+
         // Espacador
         Region spacerMenu = new Region();
         VBox.setVgrow(spacerMenu, Priority.ALWAYS);
@@ -144,6 +160,7 @@ public class TelaDashboard {
         });
 
         sidebar.getChildren().addAll(logoView, lblTituloPainel, btnDashboard, btnNovaOcorrencia, btnFrota, btnEquipe, btnColaborador, btnRelatorio, spacerMenu, btnSair);
+
 
         // =============================================================================================
         // 2. COLUNA CENTRAL: MAPA DA CIDADE
@@ -174,10 +191,12 @@ public class TelaDashboard {
         rightPanel.setMinWidth(LARGURA_RESUMO);
         rightPanel.setStyle("-fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, -5, 0);");
 
+        // --- Título Resumo ---
         Label lblResumo = new Label("Resumo Operacional");
         lblResumo.setFont(FONTE_SUBTITULO);
         lblResumo.setTextFill(COR_AZUL_NOTURNO);
 
+        // --- SEÇÃO 1: LISTA DE OCORRÊNCIAS ---
         Label lblPendentes = new Label("Ocorrências Pendentes");
         lblPendentes.setFont(FONTE_CORPO);
         lblPendentes.setTextFill(COR_TEXTO_CLARO);
@@ -193,6 +212,7 @@ public class TelaDashboard {
         scrollPane.setPrefHeight(300);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
+        // --- SEÇÃO 2: CONTADOR DE FROTA ---
         VBox painelFrota = new VBox(5);
         painelFrota.setAlignment(Pos.CENTER);
         painelFrota.setPadding(new Insets(20));
@@ -211,7 +231,9 @@ public class TelaDashboard {
         lblFrotaTotal.setTextFill(COR_TEXTO_BRANCO);
 
         painelFrota.getChildren().addAll(lblFrotaTitulo, lblFrotaNumero, lblFrotaTotal);
+
         rightPanel.getChildren().addAll(lblResumo, lblPendentes, scrollPane, painelFrota);
+
 
         // =============================================================================================
         // MONTAGEM FINAL
@@ -223,6 +245,7 @@ public class TelaDashboard {
         HBox.setHgrow(rightPanel, Priority.NEVER);
         HBox.setHgrow(centerMap, Priority.ALWAYS);
 
+        // Marca o botão Dashboard como ativo inicialmente
         atualizarEstiloBotao(btnDashboard);
 
         // MUDANÇA 3: Retornamos o Layout (rootLayout) e NÃO uma nova Scene
@@ -233,27 +256,42 @@ public class TelaDashboard {
     // MÉTODOS AUXILIARES (Mantidos inalterados)
     // =============================================================================================
 
+    /**
+     * Remove o que está no centro e coloca o novo conteúdo
+     */
     private void setConteudoCentral(Node novoConteudo) {
+        // O índice 1 é sempre o centro (0=Esquerda, 1=Centro, 2=Direita)
         rootLayout.getChildren().remove(1);
         rootLayout.getChildren().add(1, novoConteudo);
+
+        // Garante que o novo conteúdo cresça
         HBox.setHgrow(novoConteudo, Priority.ALWAYS);
 
+        // Se for um painel, remove restrições de tamanho para preencher tudo
         if (novoConteudo instanceof Region) {
             ((Region) novoConteudo).setMaxWidth(Double.MAX_VALUE);
             ((Region) novoConteudo).setMaxHeight(Double.MAX_VALUE);
         }
     }
 
+    /**
+     * Gerencia visualmente qual botão está selecionado (Vermelho)
+     */
     private void atualizarEstiloBotao(Button btnAtivo) {
+        // Estilos padrão
         String estiloNormal = "-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand; -fx-alignment: CENTER_LEFT;";
         String estiloAtivo  = "-fx-background-color: " + HEX_SIDEBAR_HOVER + "; -fx-background-radius: 8; -fx-cursor: hand; -fx-alignment: CENTER_LEFT;";
         String estiloHover  = "-fx-background-color: #334155; -fx-background-radius: 8; -fx-cursor: hand; -fx-alignment: CENTER_LEFT;";
 
+        // 1. Reseta TODOS os botões da lista
         for (Button b : botoesMenu) {
             b.setStyle(estiloNormal);
+            // Volta a cor do texto para cinza claro
             alterarCorTextoBotao(b, Color.web("#E2E8F0"));
 
+            // Recria o comportamento de hover (porque ao setar style, as vezes perde o listener)
             b.setOnMouseEntered(e -> {
+                // Só aplica hover se NÃO for o botão ativo atual
                 if (b != btnAtivo) {
                     b.setStyle(estiloHover);
                     alterarCorTextoBotao(b, Color.WHITE);
@@ -267,12 +305,16 @@ public class TelaDashboard {
             });
         }
 
+        // 2. Aplica estilo ATIVO no botão clicado
         btnAtivo.setStyle(estiloAtivo);
         alterarCorTextoBotao(btnAtivo, Color.WHITE);
         btnAtivo.setOnMouseEntered(null);
         btnAtivo.setOnMouseExited(null);
     }
 
+    /**
+     * Helper para mudar a cor do texto DENTRO do TextFlow do botão
+     */
     private void alterarCorTextoBotao(Button btn, Color cor) {
         if (btn.getGraphic() instanceof TextFlow) {
             TextFlow flow = (TextFlow) btn.getGraphic();
@@ -284,6 +326,9 @@ public class TelaDashboard {
         }
     }
 
+    /**
+     * Cria um VBox simples apenas para ilustrar a troca de telas (Placeholder)
+     */
     private VBox criarPlaceholderFormulario(String titulo) {
         VBox form = new VBox(20);
         form.setPadding(new Insets(40));
@@ -301,15 +346,28 @@ public class TelaDashboard {
         return form;
     }
 
+    // =============================================================================================
+    // MÉTODOS AUXILIARES (Botao com emoji de uma fonte, e escrita de outra)
+    // =============================================================================================
+
+    /**
+     * Cria um botão estilizado
+     */
     private Button criarBotaoMenu(String texto, String iconeEmoji) {
         Button btn = new Button();
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setAlignment(Pos.CENTER_LEFT);
+
+        // Sequência: v cima, v1 direita, v2 baixo, v3 esquerda
         btn.setPadding(new Insets(12, 15, 12, 15));
+
+        // Altura controlada (Evita que fique gigante)
         btn.setMinHeight(45);
         btn.setMaxHeight(45);
 
+        // --- 1. EMOJI ---
         javafx.scene.text.Text txtEmoji = new javafx.scene.text.Text(iconeEmoji);
+        // Reduz o emoji para 16px
         txtEmoji.setFont(Font.font("Segoe UI Emoji", 16));
         txtEmoji.setFill(Color.web("#E2E8F0"));
 
@@ -317,15 +375,26 @@ public class TelaDashboard {
         txtLabel.setFont(FONTE_BOTAO2);
         txtLabel.setFill(Color.web("#E2E8F0"));
 
+        // --- 3. MISTA DOS DOIS ---
         javafx.scene.text.TextFlow flow = new javafx.scene.text.TextFlow(txtEmoji, txtLabel);
+        // Alinha o testo dos botoes
         flow.setTextAlignment(TextAlignment.LEFT);
 
         btn.setGraphic(flow);
+
+        // --- REGISTRO DO BOTÃO NA LISTA (IMPORTANTE) ---
+        // Adicionamos o botão na lista para podermos controlar a cor depois
         botoesMenu.add(btn);
 
         return btn;
     }
 
+    /**
+     * Cria um quadrado visual para representar uma ocorrência na lista
+     */
+    /**
+     * Cria um card interativo. Ao clicar, abre o despacho.
+     */
     private HBox criarCardOcorrencia(String titulo, String subtitulo, String corStatus, String bairro, String gravidade) {
         HBox card = new HBox(10);
         card.setPadding(new Insets(15));
@@ -336,15 +405,24 @@ public class TelaDashboard {
 
         card.setStyle(estiloNormal);
 
+        // --- LÓGICA DE INTERAÇÃO ---
+
+        // 1. Efeito Hover (Muda cor de fundo e borda)
         card.setOnMouseEntered(e -> card.setStyle(estiloHover));
         card.setOnMouseExited(e -> card.setStyle(estiloNormal));
 
+        // 2. Ação de Clique (O Pulo do Gato 🐱)
         card.setOnMouseClicked(e -> {
             System.out.println("Abrindo despacho rápido para: " + titulo);
+
+            // Truque para pegar o Stage atual a partir do componente
             Stage stageAtual = (Stage) card.getScene().getWindow();
+
+            // Abre o Modal de Seleção (Aquele que criamos antes)
             new ModalSelecaoAmbulancia().exibir(stageAtual, bairro, gravidade);
         });
 
+        // --- CONTEÚDO DO CARD ---
         Circle statusDot = new Circle(5, Color.web(corStatus));
 
         VBox textos = new VBox(4);

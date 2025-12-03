@@ -3,6 +3,7 @@ package com.pi.grafos.view.screens;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -11,12 +12,24 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.*;
 import javafx.event.Event;
+import javafx.fxml.FXMLLoader;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import com.pi.grafos.model.Equipe;
+import com.pi.grafos.model.Funcionario;
+import com.pi.grafos.model.enums.Cargos;
+import com.pi.grafos.service.EquipeService;
+import com.pi.grafos.service.FuncionarioService;
+
 import static com.pi.grafos.view.styles.AppStyles.*;
 
+@Component
+@Scope("prototype")
 public class GestaoEquipesView {
 
     private VBox contentArea;
@@ -25,11 +38,15 @@ public class GestaoEquipesView {
     // Componentes Globais
     private VBox containerMembros;
     private TextField txtNomeEquipe;
+    
+    private final FuncionarioService fService;
+    private final EquipeService eService;
 
     // --- MOCK DE DADOS ---
     private static class MembroMock {
-        String nome, funcao;
-        public MembroMock(String nome, String funcao) { this.nome = nome; this.funcao = funcao; }
+        String nome;
+        Cargos funcao;
+        public MembroMock(String nome, Cargos funcao) { this.nome = nome; this.funcao = funcao; }
     }
 
     private static class EquipeMock {
@@ -43,18 +60,21 @@ public class GestaoEquipesView {
 
     private List<EquipeMock> listaEquipes = new ArrayList<>();
 
-    public GestaoEquipesView() {
+    public GestaoEquipesView(EquipeService eService, FuncionarioService fService) {
         // Dados de teste
         EquipeMock eq1 = new EquipeMock("1", "Equipe Alpha (UTI)");
-        eq1.membros.add(new MembroMock("Carlos Pereira", "CONDUTOR"));
-        eq1.membros.add(new MembroMock("Maria Souza", "ENFERMEIRO"));
-        eq1.membros.add(new MembroMock("Dr. João Silva", "MÉDICO"));
+        eq1.membros.add(new MembroMock("Carlos Pereira", Cargos.CONDUTOR));
+        eq1.membros.add(new MembroMock("Maria Souza", Cargos.ENFERMEIRO));
+        eq1.membros.add(new MembroMock("Dr. João Silva", Cargos.MEDICO));
         listaEquipes.add(eq1);
 
         EquipeMock eq2 = new EquipeMock("2", "Equipe Beta (Básica)");
-        eq2.membros.add(new MembroMock("Pedro Santos", "CONDUTOR"));
-        eq2.membros.add(new MembroMock("Ana Clara", "ENFERMEIRO"));
+        eq2.membros.add(new MembroMock("Pedro Santos", Cargos.CONDUTOR));
+        eq2.membros.add(new MembroMock("Ana Clara", Cargos.ENFERMEIRO));
         listaEquipes.add(eq2);
+
+        this.fService = fService;
+        this.eService = eService;
     }
 
     public VBox criarView() {
@@ -153,26 +173,30 @@ public class GestaoEquipesView {
         scrollMembros.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: #E2E8F0; -fx-border-radius: 5;");
 
         // Lógica de Preenchimento da Lista
-        if (equipe != null) {
-            for (MembroMock m : equipe.membros) {
-                adicionarLinhaMembro(m.funcao, m.nome, true);
-            }
-        } else {
-            adicionarLinhaMembro("CONDUTOR", null, false);
-            adicionarLinhaMembro("MÉDICO", null, false);
-            adicionarLinhaMembro("ENFERMEIRO", null, false);
-        }
+        Button btnSalvar = new Button("SALVAR EQUIPE");
+        btnSalvar.setFont(FONTE_BOTAO2);
 
+        btnSalvar.setDisable(true);
+        
         // Botão "Adicionar Novo Membro"
         Button btnAddMembro = new Button("+ Adicionar Membro");
         btnAddMembro.setFont(FONTE_CORPO);
         btnAddMembro.setMaxWidth(Double.MAX_VALUE);
         btnAddMembro.setStyle("-fx-background-color: white; -fx-text-fill: " + HEX_VERMELHO + "; -fx-border-color: " + HEX_VERMELHO + "; -fx-border-radius: 5; -fx-cursor: hand; -fx-border-style: dashed;");
-        btnAddMembro.setOnAction(e -> adicionarLinhaMembro(null, null, true));
-
+        btnAddMembro.setOnAction(e -> adicionarLinhaMembro(null, false, btnSalvar));
+        
         // Botão Salvar
-        Button btnSalvar = new Button("SALVAR EQUIPE");
-        btnSalvar.setFont(FONTE_BOTAO2);
+        if (equipe != null) {
+            for (MembroMock m : equipe.membros) {
+                adicionarLinhaMembro(m.funcao, false, btnSalvar);
+            }
+        } else {
+            adicionarLinhaMembro(Cargos.CONDUTOR, false, btnSalvar);
+            adicionarLinhaMembro(Cargos.MEDICO, false, btnSalvar);
+            adicionarLinhaMembro(Cargos.ENFERMEIRO, false, btnSalvar);
+
+            // private void adicionarLinhaMembro(Cargos cargoFixo, String nomePreSelecionado, boolean podeExcluir, Button btnSalvar)
+        }
         btnSalvar.setPrefHeight(50);
         btnSalvar.setMaxWidth(Double.MAX_VALUE);
 
@@ -184,6 +208,11 @@ public class GestaoEquipesView {
         btnSalvar.setOnMouseExited(e -> btnSalvar.setStyle(styleBase));
 
         btnSalvar.setOnAction(e -> {
+
+            List<Funcionario> j = extrairFuncionariosSelecionados();
+
+            eService.cadastrarEquipe(txtNomeEquipe.getText(), j);
+        
             btnSalvar.setText("SALVO COM SUCESSO!");
             btnSalvar.setStyle("-fx-background-color: #10B981; -fx-text-fill: white; -fx-background-radius: 5; -fx-font-weight: bold; -fx-font-family: 'Poppins'; -fx-font-size: 18px;");
         });
@@ -314,85 +343,33 @@ public class GestaoEquipesView {
     // COMPONENTES AUXILIARES
     // =============================================================================================
 
-    private void adicionarLinhaMembro(String cargoFixo, String nomePreSelecionado, boolean podeExcluir) {
-        HBox linha = new HBox(10);
-        linha.setAlignment(Pos.CENTER_LEFT);
-        linha.setStyle("-fx-background-color: #F8FAFC; -fx-padding: 8; -fx-background-radius: 5; -fx-border-color: #E2E8F0; -fx-border-radius: 5;");
-
-        // Combo de Função
-        ComboBox<String> comboFuncao = new ComboBox<>();
-
-        comboFuncao.setItems(FXCollections.observableArrayList("CONDUTOR", "ENFERMEIRO", "MÉDICO"));
-        
-        comboFuncao.setPrefWidth(150);
-        comboFuncao.setPrefHeight(40);
-        comboFuncao.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px;");
-
-        if (cargoFixo != null) {
-            comboFuncao.setValue(cargoFixo);
-            // Trava visualmente mas mantendo legibilidade
-            comboFuncao.addEventFilter(MouseEvent.MOUSE_PRESSED, Event::consume);
-            comboFuncao.addEventFilter(KeyEvent.KEY_PRESSED, Event::consume);
-            comboFuncao.setFocusTraversable(false);
-            comboFuncao.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-opacity: 1; -fx-background-color: #E2E8F0; -fx-text-fill: black;");
-        } else {
-            comboFuncao.setPromptText("Selecione...");
-        }
-
-        // Combo de Profissional
-        ComboBox<String> comboNome = new ComboBox<>();
-        comboNome.setPromptText("Selecione o Profissional...");
-        comboNome.setItems(FXCollections.observableArrayList(
-                "Dr. João Silva (CRM 123)",
-                "Enf. Maria Souza (COREN 456)",
-                "Mot. Carlos Pereira (CNH B)",
-                "Mot. Roberto Carlos",
-                "Dra. Ana Julia"
-        ));
-        comboNome.setMaxWidth(Double.MAX_VALUE);
-        comboNome.setPrefHeight(40);
-        comboNome.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px;");
-        if (nomePreSelecionado != null) comboNome.setValue(nomePreSelecionado);
-        HBox.setHgrow(comboNome, Priority.ALWAYS);
-
-        linha.getChildren().addAll(comboFuncao, comboNome);
-
-        if (podeExcluir) {
-            Button btnRemover = new Button("✕");
-            btnRemover.setStyle("-fx-background-color: transparent; -fx-text-fill: #EF4444; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;");
-            btnRemover.setOnAction(e -> containerMembros.getChildren().remove(linha));
-            linha.getChildren().add(btnRemover);
-        }
-
-        containerMembros.getChildren().add(linha);
-    }
-
+    
     private Button criarBotaoCrudComEmoji(String texto, String emoji, String corNormal, String corEscura) {
         Button btn = new Button();
         btn.setPrefWidth(180);
         btn.setPrefHeight(50);
         btn.setMinHeight(50);
         btn.setUserData(new String[]{corNormal, corEscura});
-
+        
         Text txtEmoji = new Text(emoji);
         txtEmoji.setFont(Font.font("Segoe UI Emoji", 20));
         txtEmoji.setFill(Color.WHITE);
         txtEmoji.setBoundsType(TextBoundsType.VISUAL);
-
+        
         Label lblTexto = new Label(texto);
         lblTexto.setFont(Font.font("Poppins", FontWeight.BOLD, 18));
         lblTexto.setTextFill(Color.WHITE);
         lblTexto.setPadding(Insets.EMPTY);
-
+        
         HBox container = new HBox(8);
         container.setAlignment(Pos.CENTER);
         container.getChildren().addAll(txtEmoji, lblTexto);
-
+        
         btn.setGraphic(container);
         btn.setStyle("-fx-background-color: " + corNormal + "; -fx-background-radius: 8; -fx-cursor: hand;");
         return btn;
     }
-
+    
     private void atualizarSelecaoBotoes(Button btnAtivo) {
         Button[] todos = {btnCadastrar, btnEditar, btnExcluir};
         for (Button b : todos) {
@@ -416,6 +393,201 @@ public class GestaoEquipesView {
         v.getChildren().addAll(l, input);
         return v;
     }
-
     
+    private void adicionarLinhaMembro(Cargos cargoFixo, boolean podeExcluir, Button btnSalvar) {
+        HBox linha = new HBox(10);
+        linha.setAlignment(Pos.CENTER_LEFT);
+        linha.setStyle("-fx-background-color: #F8FAFC; -fx-padding: 8; -fx-background-radius: 5; -fx-border-color: #E2E8F0; -fx-border-radius: 5;");
+
+        // Combo de Função
+        ComboBox<Cargos> comboFuncao = new ComboBox<>();
+        comboFuncao.setItems(FXCollections.observableArrayList(Cargos.values()));
+        comboFuncao.setPrefWidth(150);
+        comboFuncao.setPrefHeight(40);
+        comboFuncao.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px;");
+
+        // Combo de Profissional
+        ComboBox<String> comboNome = new ComboBox<>();
+        comboNome.setPromptText("Selecione o Profissional...");
+        comboNome.setMaxWidth(Double.MAX_VALUE);
+        comboNome.setPrefHeight(40);
+        comboNome.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px;");
+        HBox.setHgrow(comboNome, Priority.ALWAYS);
+
+        if (cargoFixo != null) {
+            // Cargo pré-definido (modo edição ou template inicial)
+            comboFuncao.setValue(cargoFixo);
+            comboFuncao.setDisable(true);
+            comboFuncao.addEventFilter(MouseEvent.MOUSE_PRESSED, Event::consume);
+            comboFuncao.addEventFilter(KeyEvent.KEY_PRESSED, Event::consume);
+            comboFuncao.setFocusTraversable(false);
+            comboFuncao.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-opacity: 1; -fx-background-color: #E2E8F0; -fx-text-fill: black;");
+            
+            // Carrega funcionários do cargo específico
+            carregarFuncionariosPorCargo(cargoFixo, comboNome);
+                // Modo "adicionar novo" - deixa combo vazio até selecionar função
+                comboFuncao.setPromptText("Selecione...");
+                
+                // Listener: quando selecionar uma função, carrega os funcionários
+                comboFuncao.setOnAction(e -> {
+                    Cargos cargoSelecionado = comboFuncao.getValue();
+                    if (cargoSelecionado != null) {
+                        carregarFuncionariosPorCargo(cargoSelecionado, comboNome);
+                    } else {
+                        comboNome.getItems().clear();
+                        comboNome.setValue(null);
+                    }
+                    validarFormulario(btnSalvar, null, null, null);
+                });
+            
+            }
+            // Listener para validar quando selecionar um profissional
+            comboNome.setOnAction(e -> validarFormulario(btnSalvar, null, null, null));
+
+            linha.getChildren().addAll(comboFuncao, comboNome);
+
+            if (podeExcluir) {
+                Button btnRemover = new Button("✕");
+                btnRemover.setStyle("-fx-background-color: transparent; -fx-text-fill: #EF4444; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnRemover.setOnAction(e -> {
+                    containerMembros.getChildren().remove(linha);
+                    validarFormulario(btnSalvar, null, null, null);
+                });
+                linha.getChildren().add(btnRemover);
+            }
+
+            containerMembros.getChildren().add(linha);
+    }
+
+    // Método auxiliar para carregar funcionários
+    private void carregarFuncionariosPorCargo(Cargos cargo, ComboBox<String> comboNome) {
+        try {
+            List<Funcionario> funcionarios = fService.findByCargos(cargo);
+            List<String> nomes = funcionarios.stream()
+                    .map(Funcionario::getNomeFuncionario)
+                    .toList();
+            
+            comboNome.setItems(FXCollections.observableArrayList(nomes));
+            comboNome.setPromptText("Selecione o Profissional...");
+            
+        } catch (RuntimeException e) {
+            // Se não encontrar funcionários, trata como lista vazia (não é erro!)
+            if (e.getMessage() != null && e.getMessage().contains("Nenhum Funcionário encontrado")) {
+                comboNome.setItems(FXCollections.observableArrayList());
+                comboNome.setPromptText("Nenhum funcionário cadastrado");
+            } else {
+                // Outros erros reais (conexão, etc)
+                System.err.println("Erro ao carregar funcionários: " + e.getMessage());
+                comboNome.setItems(FXCollections.observableArrayList());
+                comboNome.setPromptText("Erro ao carregar");
+            }
+        }
+    }
+
+    // Método de validação do formulário
+    private boolean validarFormulario(Button btnSalvar, String styleBase, String styleHover, String styleDisabled) {
+        // Verifica se os 3 cargos obrigatórios estão preenchidos
+        boolean temCondutor = false;
+        boolean temMedico = false;
+        boolean temEnfermeiro = false;
+
+        for (Node node : containerMembros.getChildren()) {
+            if (node instanceof HBox linha) {
+                ComboBox<Cargos> comboFuncao = null;
+                ComboBox<String> comboNome = null;
+
+                // Pega os combos da linha
+                for (Node child : linha.getChildren()) {
+                    if (child instanceof ComboBox<?>) {
+                        if (comboFuncao == null) {
+                            comboFuncao = (ComboBox<Cargos>) child;
+                        } else {
+                            comboNome = (ComboBox<String>) child;
+                        }
+                    }
+                }
+
+                // Verifica se ambos estão preenchidos
+                if (comboFuncao != null && comboNome != null) {
+                    Cargos cargo = comboFuncao.getValue();
+                    String nome = comboNome.getValue();
+
+                    if (cargo != null && nome != null && !nome.isEmpty()) {
+                        if (cargo == Cargos.CONDUTOR) temCondutor = true;
+                        if (cargo == Cargos.MEDICO) temMedico = true;
+                        if (cargo == Cargos.ENFERMEIRO) temEnfermeiro = true;
+                    }
+                }
+            }
+        }
+
+        boolean formularioValido = temCondutor && temMedico && temEnfermeiro;
+
+        // Atualiza o estado do botão
+        if (formularioValido) {
+            btnSalvar.setDisable(false);
+            if (styleBase != null) {
+                btnSalvar.setStyle(styleBase);
+                btnSalvar.setOnMouseEntered(e -> btnSalvar.setStyle(styleHover));
+                btnSalvar.setOnMouseExited(e -> btnSalvar.setStyle(styleBase));
+            }
+        } else {
+            btnSalvar.setDisable(true);
+            if (styleDisabled != null) {
+                btnSalvar.setStyle(styleDisabled);
+                btnSalvar.setOnMouseEntered(null);
+                btnSalvar.setOnMouseExited(null);
+            }
+        }
+
+        return formularioValido;
+    }
+
+    private List<Funcionario> extrairFuncionariosSelecionados() {
+        List<Funcionario> funcionariosSelecionados = new ArrayList<>();
+        
+        // Percorre todas as linhas de membros no container
+        for (Node node : containerMembros.getChildren()) {
+            if (node instanceof HBox linha) {
+                ComboBox<Cargos> comboFuncao = null;
+                ComboBox<String> comboNome = null;
+                
+                // Extrai os combos da linha
+                for (Node child : linha.getChildren()) {
+                    if (child instanceof ComboBox<?>) {
+                        if (comboFuncao == null) {
+                            comboFuncao = (ComboBox<Cargos>) child;
+                        } else {
+                            comboNome = (ComboBox<String>) child;
+                        }
+                    }
+                }
+                
+                // Se ambos os combos estão preenchidos, busca o funcionário
+                if (comboFuncao != null && comboNome != null) {
+                    Cargos cargo = comboFuncao.getValue();
+                    String nomeSelecionado = comboNome.getValue();
+                    
+                    if (cargo != null && nomeSelecionado != null && !nomeSelecionado.isEmpty()) {
+                        try {
+                            // Busca todos os funcionários desse cargo
+                            List<Funcionario> funcionariosDoCargo = fService.findByCargos(cargo);
+                            
+                            // Encontra o funcionário específico pelo nome
+                            funcionariosDoCargo.stream()
+                                .filter(f -> f.getNomeFuncionario().equals(nomeSelecionado))
+                                .findFirst()
+                                .ifPresent(funcionariosSelecionados::add);
+                                
+                        } catch (Exception e) {
+                            System.err.println("Erro ao buscar funcionário: " + nomeSelecionado);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return funcionariosSelecionados;
+    }
+
 }

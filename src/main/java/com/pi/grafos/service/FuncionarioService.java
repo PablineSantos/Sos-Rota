@@ -1,5 +1,6 @@
 package com.pi.grafos.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,11 +22,8 @@ public class FuncionarioService {
         this.repository = repository;
     }
 
-    public List<Funcionario> findAll(){
-        return repository.findAll();
-    }
-
     // Metodo único para Salvar (Novo) ou Atualizar (Editar)
+
     @Transactional
     public void salvarOuAtualizar(Long id, String nome, Cargos cargo, String email, String telefone) {
         // 1. Validações de Regra de Negócio
@@ -78,6 +76,19 @@ public class FuncionarioService {
             throw new RuntimeException("Funcionário não encontrado para exclusão.");
         }
         repository.deleteById(id);
+    }
+
+    public List<Funcionario> findAll(){
+        return repository.findAll();
+    }
+
+    public List<Funcionario> findByCargos(Cargos cargo) {
+        // O repositório deve ter o método findByCargo (singular) padrão do JPA
+        List<Funcionario> lista = repository.findByCargo(cargo);
+        if (lista == null) {
+            return new ArrayList<>(); // Retorna lista vazia em vez de null para evitar erros
+        }
+        return lista;
     }
 
     public List<Funcionario> findAllNoTeams() {

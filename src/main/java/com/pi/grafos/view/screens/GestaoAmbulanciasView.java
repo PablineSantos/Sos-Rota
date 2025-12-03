@@ -1,10 +1,21 @@
  package com.pi.grafos.view.screens;
 
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import com.pi.grafos.model.Ambulancia;
+import com.pi.grafos.model.Localizacao;
 import com.pi.grafos.model.enums.AmbulanciaStatus;
+import com.pi.grafos.model.enums.Cargos;
 import com.pi.grafos.model.enums.TipoAmbulancia;
 import com.pi.grafos.repository.AmbulanciaRepository;
 import com.pi.grafos.repository.LocalizacaoRepository;
@@ -271,17 +282,17 @@ import javafx.scene.text.Text;
 
                         /*
                         List<Localizacao> unidades = localizacaoRepository.findByNome(baseAmbulancia);
-                        
+
                         if (unidades.isEmpty()) {
                             throw new RuntimeException("Base não encontrada!");
                         }
 
-                        Localizacao unidade = unidades.get(0); 
+                        Localizacao unidade = unidades.get(0);
                         novaAmbulancia.setUnidade(unidade);
                         */
                     }
 
-                    
+
                 } catch (Exception error) {
                     error.printStackTrace();
                 }
