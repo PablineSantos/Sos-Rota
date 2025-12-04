@@ -1,4 +1,4 @@
-package com.pi.grafos.config;
+/*package com.pi.grafos.config;
 
 import com.pi.grafos.model.Cidade;
 import com.pi.grafos.model.Localizacao;
@@ -125,4 +125,4 @@ public class DataInitializer implements CommandLineRunner {
             }
         }
     }
-}
+}*/
