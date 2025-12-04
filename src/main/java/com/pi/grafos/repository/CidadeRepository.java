@@ -12,7 +12,9 @@ import com.pi.grafos.model.Cidade;
 public interface CidadeRepository extends JpaRepository<Cidade, Long>{
 
     Optional<Cidade> findByIdCidade(Long id);
-    
+
+    Optional<Cidade> findByNomeCidade(String nome);
+
     List<Cidade> findByNomeCidadeIgnoreCaseLike(String nome);
 
 }

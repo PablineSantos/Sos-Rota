@@ -1,13 +1,4 @@
- package com.pi.grafos.view.screens;
-
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.text.*;
+package com.pi.grafos.view.screens;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,458 +6,391 @@ import java.util.List;
 import com.pi.grafos.model.Ambulancia;
 import com.pi.grafos.model.Localizacao;
 import com.pi.grafos.model.enums.AmbulanciaStatus;
-import com.pi.grafos.model.enums.Cargos;
 import com.pi.grafos.model.enums.TipoAmbulancia;
-import com.pi.grafos.repository.AmbulanciaRepository;
+import com.pi.grafos.model.enums.TipoLocalizacao;
 import com.pi.grafos.repository.LocalizacaoRepository;
-import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
-import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_CLARO;
-import static com.pi.grafos.view.styles.AppStyles.COR_VERMELHO_RESGATE;
-import static com.pi.grafos.view.styles.AppStyles.FONTE_BOTAO2;
-import static com.pi.grafos.view.styles.AppStyles.FONTE_CORPO;
-import static com.pi.grafos.view.styles.AppStyles.FONTE_PEQUENA;
-import static com.pi.grafos.view.styles.AppStyles.FONTE_SUBTITULO;
-import static com.pi.grafos.view.styles.AppStyles.FONTE_TITULO;
-import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
+import com.pi.grafos.service.AmbulanciaService;
+import com.pi.grafos.view.components.Alerta;
+import com.pi.grafos.view.components.AlertaConfirmacao;
 
+import static com.pi.grafos.view.styles.AppStyles.*;
+
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Control;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
+import javafx.scene.text.*;
+import javafx.util.StringConverter;
 
-    public class GestaoAmbulanciasView {
-        private final AmbulanciaRepository ambulanciaRepository;
-        private final LocalizacaoRepository localizacaoRepository;
+public class GestaoAmbulanciasView {
 
-        // --- COMPONENTES DE UI ---
-        private VBox contentArea;
-        private Button btnCadastrar, btnEditar, btnExcluir;
+    private final AmbulanciaService ambulanciaService;
+    private final LocalizacaoRepository localizacaoRepo;
 
-        // Campos do Formulário
-        private TextField txtPlaca;
-        private ComboBox<String> comboTipo;
-        private ComboBox<String> comboBase;
-        private ComboBox<EquipeMock> comboEquipe;
-        private Label lblStatusBadge;
+    private VBox contentArea;
+    private Button btnCadastrar, btnEditar, btnExcluir;
 
-        // --- MOCK DE DADOS ---
-        public static class EquipeMock {
-            String nome;
-            boolean temMedico;
-            public EquipeMock(String nome, boolean temMedico) { this.nome = nome; this.temMedico = temMedico; }
-            @Override public String toString() { return nome + (temMedico ? " (UTI Capable)" : ""); }
-        }
+    // Campos do Formulário (Note que removemos o comboEquipe)
+    private TextField txtPlaca;
+    private ComboBox<TipoAmbulancia> comboTipo;
+    private ComboBox<Localizacao> comboBase;
+    private ComboBox<AmbulanciaStatus> comboStatus;
 
-        public static class AmbulanciaMock {
-            String placa, tipo, base, status;
-            EquipeMock equipe;
-            public AmbulanciaMock(String placa, String tipo, String base, String status, EquipeMock equipe) {
-                this.placa = placa; this.tipo = tipo; this.base = base; this.status = status; this.equipe = equipe;
-            }
-        }
+    public GestaoAmbulanciasView(AmbulanciaService ambulanciaService, LocalizacaoRepository localizacaoRepo) {
+        this.ambulanciaService = ambulanciaService;
+        this.localizacaoRepo = localizacaoRepo;
+    }
 
-        private List<AmbulanciaMock> listaAmbulancias = new ArrayList<>();
-        private List<EquipeMock> listaEquipesDisponiveis = new ArrayList<>();
+    public VBox criarView() {
+        VBox root = new VBox(20);
+        root.setPadding(new Insets(40));
+        root.setAlignment(Pos.TOP_CENTER);
+        root.setStyle("-fx-background-color: #F1F5F9;");
 
-        public GestaoAmbulanciasView(AmbulanciaRepository ambulanciaRepository, LocalizacaoRepository localizacaoRepository) {
-            this.ambulanciaRepository = ambulanciaRepository;
-            this.localizacaoRepository = localizacaoRepository;
+        // Cabeçalho
+        VBox header = new VBox(5);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setMinHeight(Region.USE_PREF_SIZE);
+        Label lblTitulo = new Label("Frota de Ambulâncias");
+        lblTitulo.setFont(FONTE_TITULO);
+        lblTitulo.setTextFill(COR_AZUL_NOTURNO);
+        Label lblDesc = new Label("Gerencie veículos e bases operacionais.");
+        lblDesc.setFont(FONTE_CORPO);
+        lblDesc.setTextFill(COR_TEXTO_CLARO);
+        header.getChildren().addAll(lblTitulo, lblDesc);
 
-            carregarMocks();
-        }
+        // Toolbar
+        HBox toolBar = new HBox(15);
+        toolBar.setAlignment(Pos.CENTER_LEFT);
+        toolBar.setPadding(new Insets(10, 0, 20, 0));
+        toolBar.setMinHeight(80);
+        VBox.setVgrow(toolBar, Priority.NEVER);
 
-        private void carregarMocks() {
-            EquipeMock eq1 = new EquipeMock("Equipe Alpha", true);
-            EquipeMock eq2 = new EquipeMock("Equipe Bravo", false);
-            listaEquipesDisponiveis.addAll(List.of(eq1, eq2));
+        btnCadastrar = criarBotaoCrudComEmoji("CADASTRAR", "🚑", "#10B981", "#059669");
+        btnCadastrar.setOnAction(e -> {
+            atualizarSelecaoBotoes(btnCadastrar);
+            mostrarFormulario(null);
+        });
 
-            listaAmbulancias.add(new AmbulanciaMock("ABC-1234", "USA (UTI)", "Base Central", "DISPONÍVEL", eq1));
-            listaAmbulancias.add(new AmbulanciaMock("XYZ-9876", "USB (Básica)", "Posto Norte", "INDISPONÍVEL", null));
-        }
+        btnEditar = criarBotaoCrudComEmoji("EDITAR", "🔧", "#F59E0B", "#D97706");
+        btnEditar.setOnAction(e -> {
+            atualizarSelecaoBotoes(btnEditar);
+            mostrarListaSelecao("EDITAR");
+        });
 
-        // =============================================================================================
-        // ESTRUTURA PRINCIPAL
-        // =============================================================================================
-        public VBox criarView() {
-            VBox root = new VBox(20);
-            root.setPadding(new Insets(40));
-            root.setAlignment(Pos.TOP_CENTER);
-            root.setStyle("-fx-background-color: #F1F5F9;");
+        btnExcluir = criarBotaoCrudComEmoji("EXCLUIR", "🚫", "#EF4444", "#B91C1C");
+        btnExcluir.setOnAction(e -> {
+            atualizarSelecaoBotoes(btnExcluir);
+            mostrarListaSelecao("EXCLUIR");
+        });
 
-            // Cabeçalho
-            VBox header = new VBox(5);
-            header.setAlignment(Pos.CENTER_LEFT);
+        toolBar.getChildren().addAll(btnCadastrar, btnEditar, btnExcluir);
 
-            Label lblTitulo = new Label("Frota de Ambulâncias");
-            lblTitulo.setFont(FONTE_TITULO);
-            lblTitulo.setTextFill(COR_AZUL_NOTURNO);
+        contentArea = new VBox(15);
+        contentArea.setAlignment(Pos.TOP_CENTER);
+        VBox.setVgrow(contentArea, Priority.ALWAYS);
 
-            Label lblDesc = new Label("Gerencie veículos, aloque equipes e defina bases operacionais.");
-            lblDesc.setFont(FONTE_CORPO);
-            lblDesc.setTextFill(COR_TEXTO_CLARO);
+        btnCadastrar.fire();
 
-            header.getChildren().addAll(lblTitulo, lblDesc);
+        root.getChildren().addAll(header, toolBar, contentArea);
+        return root;
+    }
 
-            // Toolbar
-            HBox toolBar = criarToolbar();
+    // =============================================================================================
+    // TELA 1: FORMULÁRIO ATUALIZADO (SEM EQUIPE)
+    // =============================================================================================
+    private void mostrarFormulario(Ambulancia ambulancia) {
+        contentArea.getChildren().clear();
 
-            // Conteúdo
-            contentArea = new VBox(15);
-            contentArea.setAlignment(Pos.TOP_CENTER);
-            VBox.setVgrow(contentArea, Priority.ALWAYS);
+        VBox formCard = new VBox(20);
+        formCard.setMaxWidth(850);
+        formCard.setPadding(new Insets(30));
+        formCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 15, 0, 0, 5);");
 
-            // Inicia no cadastro
-            btnCadastrar.fire();
+        Label lblAcao = new Label(ambulancia == null ? "Nova Ambulância" : "Editando: " + ambulancia.getPlaca());
+        lblAcao.setFont(FONTE_SUBTITULO);
+        lblAcao.setTextFill(COR_AZUL_NOTURNO);
 
-            root.getChildren().addAll(header, toolBar, contentArea);
-            return root;
-        }
+        // Grid Layout
+        GridPane grid = new GridPane();
+        grid.setHgap(20);
+        grid.setVgap(15);
+        ColumnConstraints col1 = new ColumnConstraints(); col1.setPercentWidth(50);
+        ColumnConstraints col2 = new ColumnConstraints(); col2.setPercentWidth(50);
+        grid.getColumnConstraints().addAll(col1, col2);
 
-        private HBox criarToolbar() {
-            HBox toolBar = new HBox(15);
-            toolBar.setAlignment(Pos.CENTER_LEFT);
-            toolBar.setPadding(new Insets(10, 0, 20, 0));
-            toolBar.setMinHeight(80);
+        // 1. Placa
+        txtPlaca = new TextField();
+        txtPlaca.setPromptText("Ex: BRA-2E19");
+        if(ambulancia != null) txtPlaca.setText(ambulancia.getPlaca());
+        VBox boxPlaca = criarCampoInput("Placa do Veículo", txtPlaca);
 
-            btnCadastrar = criarBotaoCrud("CADASTRAR", "🚑", "#10B981", "#059669");
-            btnCadastrar.setOnAction(e -> {
-                atualizarEstiloBotoes(btnCadastrar);
-                mostrarFormulario(null);
-            });
+        // 2. Tipo
+        comboTipo = new ComboBox<>();
+        comboTipo.setItems(FXCollections.observableArrayList(TipoAmbulancia.values()));
+        comboTipo.setPromptText("Selecione...");
+        comboTipo.setMaxWidth(Double.MAX_VALUE);
+        if(ambulancia != null) comboTipo.setValue(ambulancia.getTipoAmbulancia());
+        VBox boxTipo = criarCampoInput("Tipo de Unidade", comboTipo);
 
-            btnEditar = criarBotaoCrud("EDITAR", "🔧", "#F59E0B", "#D97706");
-            btnEditar.setOnAction(e -> {
-                atualizarEstiloBotoes(btnEditar);
-                mostrarListaSelecao("EDITAR");
-            });
+        // 3. Base
+        comboBase = new ComboBox<>();
+        //Puxa apenas as bases que TEM ambulancias
+        comboBase.setItems(FXCollections.observableArrayList(
+                localizacaoRepo.findByTipo(TipoLocalizacao.BASE_AMBULANCIA)
+        ));
+        comboBase.setPromptText("Selecione a base...");
+        comboBase.setMaxWidth(Double.MAX_VALUE);
+        comboBase.setConverter(new StringConverter<Localizacao>() {
+            @Override public String toString(Localizacao l) { return l == null ? null : l.getNome(); }
+            @Override public Localizacao fromString(String s) { return null; }
+        });
+        if(ambulancia != null) comboBase.setValue(ambulancia.getUnidade());
+        VBox boxBase = criarCampoInput("Base de Lotação", comboBase);
 
-            btnExcluir = criarBotaoCrud("EXCLUIR", "🚫", "#EF4444", "#B91C1C");
-            btnExcluir.setOnAction(e -> {
-                atualizarEstiloBotoes(btnExcluir);
-                mostrarListaSelecao("EXCLUIR");
-            });
+        // Adicionando ao Grid
+        grid.add(boxPlaca, 0, 0);
+        grid.add(boxTipo, 1, 0);
 
-            toolBar.getChildren().addAll(btnCadastrar, btnEditar, btnExcluir);
-            return toolBar;
-        }
-
-        // =============================================================================================
-        // VISUALIZAÇÃO 1: FORMULÁRIO (CORRIGIDO)
-        // =============================================================================================
-        private void mostrarFormulario(AmbulanciaMock ambulancia) {
-            contentArea.getChildren().clear();
-
-            VBox formCard = new VBox(20);
-            formCard.setMaxWidth(850);
-            formCard.setPadding(new Insets(30));
-            formCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; " +
-                    "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 15, 0, 0, 5);");
-
-            Label lblAcao = new Label(ambulancia == null ? "Nova Ambulância" : "Editando: " + ambulancia.placa);
-            lblAcao.setFont(FONTE_SUBTITULO);
-            lblAcao.setTextFill(COR_AZUL_NOTURNO);
-
-            // --- GRID FIX ---
-            GridPane grid = new GridPane();
-            grid.setHgap(20);
-            grid.setVgap(15);
-
-            // AQUI ESTÁ A MÁGICA: ColumnConstraints forçam 50% de largura para cada coluna
-            ColumnConstraints col1 = new ColumnConstraints();
-            col1.setPercentWidth(50);
-            ColumnConstraints col2 = new ColumnConstraints();
-            col2.setPercentWidth(50);
-            grid.getColumnConstraints().addAll(col1, col2);
-
-            // 1. Placa
-            txtPlaca = new TextField();
-            txtPlaca.setPromptText("Ex: BRA-2E19");
-            if(ambulancia != null) txtPlaca.setText(ambulancia.placa);
-            VBox boxPlaca = criarCampoInput("Placa do Veículo", txtPlaca);
-
-            // 2. Tipo
-            comboTipo = new ComboBox<>();
-            comboTipo.getItems().addAll("UTI Móvel", "Suporte Básico");
-            comboTipo.setPromptText("Selecione o tipo...");
-            comboTipo.setMaxWidth(Double.MAX_VALUE); // Garante que preencha a VBox
-            if(ambulancia != null) comboTipo.setValue(ambulancia.tipo);
-            VBox boxTipo = criarCampoInput("Tipo de Unidade", comboTipo);
-
-            // 3. Base
-            comboBase = new ComboBox<>();
-            comboBase.getItems().addAll("Base Central (HMB)", "Posto Avançado Norte", "Hospital Santa Vida");
-            comboBase.setPromptText("Selecione a base...");
-            comboBase.setMaxWidth(Double.MAX_VALUE);
-            if(ambulancia != null) comboBase.setValue(ambulancia.base);
-            VBox boxBase = criarCampoInput("Base de Lotação", comboBase);
-
-            // 4. Equipe
-            comboEquipe = new ComboBox<>();
-            comboEquipe.getItems().addAll(listaEquipesDisponiveis);
-            comboEquipe.setPromptText("Vincular equipe...");
-            comboEquipe.setMaxWidth(Double.MAX_VALUE);
-            if(ambulancia != null) comboEquipe.setValue(ambulancia.equipe);
-            VBox boxEquipe = criarCampoInput("Equipe Responsável", comboEquipe);
-
-            // Adicionando ao Grid
-            grid.add(boxPlaca, 0, 0);
-            grid.add(boxTipo, 1, 0);
+        // Se for novo, Base ocupa a linha toda. Se for edição, divide com Status.
+        if (ambulancia == null) {
+            // Novo cadastro: Grid sem status (Status nasce automático pelo Service)
+            grid.add(boxBase, 0, 1, 2, 1);
+        } else {
+            // Edição: Grid dividido
             grid.add(boxBase, 0, 1);
-            grid.add(boxEquipe, 1, 1);
 
-            // --- STATUS MONITOR ---
-            HBox statusBox = new HBox(15);
-            statusBox.setAlignment(Pos.CENTER_LEFT);
-            statusBox.setPadding(new Insets(15));
-            statusBox.setStyle("-fx-background-color: #F8FAFC; -fx-border-radius: 8; -fx-border-color: #E2E8F0; -fx-border-radius: 8;");
+            // 1. Defino quais status o usuário pode escolher manualmente
+            List<AmbulanciaStatus> statusPermitidos = new ArrayList<>();
+            statusPermitidos.add(AmbulanciaStatus.DISPONIVEL);
+            statusPermitidos.add(AmbulanciaStatus.INDISPONIVEL);
+            statusPermitidos.add(AmbulanciaStatus.EM_MANUTENCAO);
+            // Note que NÃO adicionei EM_ATENDIMENTO na lista!
 
-            Label lblStatusTitulo = new Label("Status Atual:");
-            lblStatusTitulo.setFont(FONTE_CORPO);
+            comboStatus = new ComboBox<>(FXCollections.observableArrayList(statusPermitidos));
+            comboStatus.setValue(ambulancia.getStatusAmbulancia());
+            comboStatus.setMaxWidth(Double.MAX_VALUE);
 
-            lblStatusBadge = new Label(ambulancia != null ? ambulancia.status : "AGUARDANDO DADOS");
-            lblStatusBadge.setPadding(new Insets(5, 15, 5, 15));
-            lblStatusBadge.setStyle("-fx-background-color: #E2E8F0; -fx-text-fill: #64748B; -fx-background-radius: 20; -fx-font-weight: bold;");
+            // 2. Trava de Segurança: Se ela já estiver em atendimento, bloqueia tudo!
+            if (ambulancia.getStatusAmbulancia() == AmbulanciaStatus.EM_ATENDIMENTO) {
+                comboStatus.getItems().add(AmbulanciaStatus.EM_ATENDIMENTO); // Adiciona só pra mostrar
+                comboStatus.setValue(AmbulanciaStatus.EM_ATENDIMENTO);
+                comboStatus.setDisable(true); // Bloqueia edição
 
-            statusBox.getChildren().addAll(lblStatusTitulo, lblStatusBadge);
+                // Dica visual extra: Explica por que está travado
+                Label lblAlerta = new Label("Veículo em operação. Finalize a ocorrência para editar.");
+                lblAlerta.setStyle("-fx-text-fill: #EF4444; -fx-font-size: 10px;");
+                grid.add(lblAlerta, 1, 2);
+            }
 
-            // Botão Salvar
-            Button btnSalvar = new Button("SALVAR DADOS");
-            styleSalvarButton(btnSalvar);
-
-            formCard.getChildren().addAll(lblAcao, grid, statusBox, btnSalvar);
-            contentArea.getChildren().add(formCard);
-
-            btnSalvar.setOnAction(e -> {
-                try {
-                    String placaAmbulancia = txtPlaca.getText();
-                    String tipoAmbulancia = comboTipo.getValue();
-                    String baseAmbulancia = comboBase.getValue();
-                    //String equipeAmbulancia = comboEquipe.getValue();
-
-                    if(placaAmbulancia.isEmpty() || tipoAmbulancia == null || baseAmbulancia == null){
-
-                        Alert alert = new Alert(AlertType.WARNING);
-                        alert.setTitle("Campos vazios");
-                        alert.setHeaderText(null);
-                        alert.setContentText("Preencha todos os campos antes de salvar!");
-                        alert.showAndWait();
-                        return;
-
-                    } else {
-                        Ambulancia novaAmbulancia = new Ambulancia();
-                        novaAmbulancia.setPlaca(placaAmbulancia);
-                        novaAmbulancia.setTipoAmbulancia(TipoAmbulancia.fromDescricao(tipoAmbulancia));
-                        novaAmbulancia.setStatusAmbulancia(AmbulanciaStatus.DISPONIVEL);
-                        novaAmbulancia.setIsAtivo(true);
-
-                        ambulanciaRepository.save(novaAmbulancia);
-
-                        new Alert(Alert.AlertType.INFORMATION, "Ambulância cadastrada com sucesso!").showAndWait();
-
-                        /*
-                        List<Localizacao> unidades = localizacaoRepository.findByNome(baseAmbulancia);
-
-                        if (unidades.isEmpty()) {
-                            throw new RuntimeException("Base não encontrada!");
-                        }
-
-                        Localizacao unidade = unidades.get(0);
-                        novaAmbulancia.setUnidade(unidade);
-                        */
-                    }
-
-
-                } catch (Exception error) {
-                    error.printStackTrace();
-                }
-            });
+            VBox boxStatus = criarCampoInput("Status Operacional", comboStatus);
+            grid.add(boxStatus, 1, 1);
         }
 
-        // =============================================================================================
-        // VISUALIZAÇÃO 2: LISTA (CORRIGIDO TIPO COR)
-        // =============================================================================================
-        private void mostrarListaSelecao(String modo) {
-            contentArea.getChildren().clear();
 
-            Label lblInstrucao = new Label(modo.equals("EDITAR") ?
-                    "Selecione o veículo para manutenção:" : "Selecione o veículo para baixa:");
-            lblInstrucao.setFont(FONTE_CORPO);
-            lblInstrucao.setTextFill(COR_TEXTO_CLARO);
-            contentArea.getChildren().add(lblInstrucao);
 
-            ScrollPane scroll = new ScrollPane();
-            scroll.setFitToWidth(true);
-            scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        // Nota informativa sobre equipes
+        Label lblInfo = new Label("Nota: A vinculação de equipes é feita na tela 'Gestão de Equipes'.");
+        lblInfo.setFont(FONTE_PEQUENA);
+        lblInfo.setTextFill(Color.web("#94A3B8"));
 
-            VBox lista = new VBox(10);
-            lista.setPadding(new Insets(5));
+        Button btnSalvar = new Button("SALVAR DADOS");
+        styleSalvarButton(btnSalvar);
 
-            for (AmbulanciaMock amb : listaAmbulancias) {
+        btnSalvar.setOnAction(e -> {
+            try {
+                Long id = (ambulancia == null) ? null : ambulancia.getIdAmbulancia();
+                AmbulanciaStatus status = (ambulancia == null) ? null : comboStatus.getValue();
+
+                ambulanciaService.salvarOuAtualizar(
+                        id,
+                        txtPlaca.getText(),
+                        comboTipo.getValue(),
+                        comboBase.getValue(),
+                        status
+                );
+
+                new Alerta().mostrar("Sucesso", "Dados salvos com sucesso!", Alerta.Tipo.SUCESSO);
+
+                if(ambulancia == null) {
+                    txtPlaca.clear();
+                    comboTipo.getSelectionModel().clearSelection();
+                    comboBase.getSelectionModel().clearSelection();
+                }
+            } catch (Exception ex) {
+                new Alerta().mostrar("Erro", ex.getMessage(), Alerta.Tipo.ERRO);
+            }
+        });
+
+        formCard.getChildren().addAll(lblAcao, grid, lblInfo, btnSalvar);
+        contentArea.getChildren().add(formCard);
+    }
+
+    // =============================================================================================
+    // TELA 2: LISTA CORRIGIDA (Sem getEquipe)
+    // =============================================================================================
+    private void mostrarListaSelecao(String modo) {
+        contentArea.getChildren().clear();
+        Label lblInstrucao = new Label(modo.equals("EDITAR") ? "Selecione para editar:" : "Selecione para excluir:");
+        lblInstrucao.setFont(FONTE_CORPO);
+        lblInstrucao.setTextFill(COR_TEXTO_CLARO);
+        contentArea.getChildren().add(lblInstrucao);
+
+        ScrollPane scroll = new ScrollPane();
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        VBox lista = new VBox(10);
+        lista.setPadding(new Insets(5));
+
+        try {
+            List<Ambulancia> frota = ambulanciaService.listarTodas();
+
+            for (Ambulancia amb : frota) {
                 HBox card = new HBox(15);
                 card.setPadding(new Insets(20));
                 card.setAlignment(Pos.CENTER_LEFT);
-                card.setStyle("-fx-background-color: white; -fx-background-radius: 8; " +
-                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2); -fx-cursor: hand;");
+                card.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2); -fx-cursor: hand;");
 
-                // CORREÇÃO APLICADA: Usando COR_VERMELHO_RESGATE (Color) em vez de String
-                Circle icone = new Circle(25, amb.tipo.contains("UTI") ? COR_VERMELHO_RESGATE : COR_AZUL_NOTURNO);
-
-                Label letra = new Label(amb.tipo.contains("UTI") ? "UTI" : "B");
+                boolean isUTI = amb.getTipoAmbulancia() == TipoAmbulancia.UTI;
+                Circle icone = new Circle(25, isUTI ? COR_VERMELHO_RESGATE : COR_AZUL_NOTURNO);
+                Label letra = new Label(isUTI ? "UTI" : "B");
                 letra.setTextFill(Color.WHITE);
                 letra.setFont(Font.font("Poppins", FontWeight.BOLD, 12));
                 StackPane iconStack = new StackPane(icone, letra);
 
                 VBox info = new VBox(5);
-                Label lblPlaca = new Label(amb.placa + " - " + amb.tipo);
+                info.setMinWidth(200);
+
+                Label lblPlaca = new Label(amb.getPlaca() + " - " + amb.getTipoAmbulancia());
                 lblPlaca.setFont(FONTE_SUBTITULO);
                 lblPlaca.setTextFill(COR_AZUL_NOTURNO);
+                lblPlaca.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #1E293B;");
 
-                Label lblDetalhe = new Label("Base: " + amb.base + " | Equipe: " + (amb.equipe != null ? amb.equipe.nome : "Nenhuma"));
+                String nomeBase = (amb.getUnidade() != null) ? amb.getUnidade().getNome() : "Sem Base";
+
+                // Usamos o método novo getNomesEquipesFormatado() ou contamos a lista
+                String infoEquipes;
+                if (amb.getEquipes() == null || amb.getEquipes().isEmpty()) {
+                    infoEquipes = "Nenhuma equipe";
+                } else {
+                    infoEquipes = amb.getEquipes().size() + " equipes vinculadas";
+                }
+
+                Label lblDetalhe = new Label("Base: " + nomeBase + " | " + infoEquipes);
                 lblDetalhe.setFont(FONTE_PEQUENA);
                 lblDetalhe.setTextFill(COR_TEXTO_CLARO);
 
                 info.getChildren().addAll(lblPlaca, lblDetalhe);
                 HBox.setHgrow(info, Priority.ALWAYS);
 
-                Label lblStatusCard = new Label(amb.status);
-                String corStatus = amb.status.equals("DISPONÍVEL") ? "#10B981" : "#EF4444";
-                lblStatusCard.setStyle("-fx-text-fill: " + corStatus + "; -fx-font-weight: bold; -fx-font-size: 11px; " +
-                        "-fx-border-color: " + corStatus + "; -fx-border-radius: 4; -fx-padding: 3 8 3 8;");
+                Label lblStatus = new Label(amb.getStatusAmbulancia().name());
+                String corStatus = amb.getStatusAmbulancia() == AmbulanciaStatus.DISPONIVEL ? "#10B981" : "#EF4444";
+                lblStatus.setStyle("-fx-text-fill: " + corStatus + "; -fx-font-weight: bold; -fx-font-size: 11px; -fx-border-color: " + corStatus + "; -fx-border-radius: 4; -fx-padding: 3 8 3 8;");
 
-                card.getChildren().addAll(iconStack, info, lblStatusCard);
+                Button btnAcao = new Button(modo.equals("EDITAR") ? "EDITAR" : "EXCLUIR");
+                String corBtn = modo.equals("EDITAR") ? "#F59E0B" : "#EF4444";
+                btnAcao.setStyle("-fx-background-color: " + corBtn + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;");
 
-                card.setOnMouseClicked(e -> {
+                btnAcao.setOnAction(e -> {
                     if(modo.equals("EDITAR")) mostrarFormulario(amb);
                     else mostrarConfirmacaoExclusao(amb);
                 });
 
+                card.getChildren().addAll(iconStack, info, lblStatus, btnAcao);
+                card.setOnMouseClicked(e -> btnAcao.fire());
+
                 lista.getChildren().add(card);
             }
-
-            scroll.setContent(lista);
-            contentArea.getChildren().add(scroll);
+        } catch (Exception e) {
+            new Alerta().mostrar("Erro", "Erro ao carregar lista: " + e.getMessage(), Alerta.Tipo.ERRO);
         }
 
-        // =============================================================================================
-        // VISUALIZAÇÃO 3: CONFIRMAÇÃO
-        // =============================================================================================
-        private void mostrarConfirmacaoExclusao(AmbulanciaMock amb) {
-            contentArea.getChildren().clear();
+        scroll.setContent(lista);
+        contentArea.getChildren().add(scroll);
+    }
 
-            VBox alertCard = new VBox(20);
-            alertCard.setMaxWidth(500);
-            alertCard.setAlignment(Pos.CENTER);
-            alertCard.setPadding(new Insets(30));
-            alertCard.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #EF4444; -fx-border-width: 2; -fx-border-radius: 12;");
+    // =============================================================================================
+    // TELA 3: CONFIRMAÇÃO
+    // =============================================================================================
+    private void mostrarConfirmacaoExclusao(Ambulancia amb) {
+        AlertaConfirmacao alerta = new AlertaConfirmacao();
+        boolean confirmou = alerta.mostrar("Confirmar Remoção",
+                "Tem certeza que deseja remover o veículo " + amb.getPlaca() + "?");
 
-            Label lblTitulo = new Label("Confirmar Remoção");
-            lblTitulo.setFont(FONTE_TITULO);
-            lblTitulo.setTextFill(Color.web("#EF4444"));
-
-            Label lblMsg = new Label("Tem certeza que deseja remover o veículo " + amb.placa + "?");
-            lblMsg.setFont(FONTE_CORPO);
-
-            HBox actions = new HBox(10);
-            actions.setAlignment(Pos.CENTER);
-
-            Button btnCancel = new Button("Cancelar");
-            btnCancel.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-text-fill: #64748B; -fx-background-radius: 5; -fx-cursor: hand; -fx-pref-height: 40;");
-            btnCancel.setOnAction(e -> mostrarListaSelecao("EXCLUIR"));
-
-            Button btnConfirm = new Button("CONFIRMAR");
-            btnConfirm.setFont(FONTE_BOTAO2);
-            btnConfirm.setStyle("-fx-background-color: #EF4444; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand; -fx-pref-height: 40;");
-            btnConfirm.setOnAction(e -> {
-                listaAmbulancias.remove(amb);
+        if (confirmou) {
+            try {
+                ambulanciaService.deletar(amb.getIdAmbulancia());
+                new Alerta().mostrar("Sucesso", "Ambulância removida.", Alerta.Tipo.SUCESSO);
                 mostrarListaSelecao("EXCLUIR");
-            });
-
-            actions.getChildren().addAll(btnCancel, btnConfirm);
-            alertCard.getChildren().addAll(lblTitulo, lblMsg, actions);
-
-            contentArea.getChildren().add(alertCard);
-        }
-
-        // =============================================================================================
-        // UTILITÁRIOS
-        // =============================================================================================
-
-        private Button criarBotaoCrud(String texto, String emoji, String corNormal, String corEscura) {
-            Button btn = new Button();
-            btn.setPrefWidth(180);
-            btn.setPrefHeight(50);
-            btn.setUserData(new String[]{corNormal, corEscura});
-
-            Text txtEmoji = new Text(emoji);
-            txtEmoji.setFont(Font.font("Segoe UI Emoji", 20));
-            txtEmoji.setFill(Color.WHITE);
-
-            Label lblTexto = new Label(texto);
-            lblTexto.setFont(Font.font("Poppins", FontWeight.BOLD, 18));
-            lblTexto.setTextFill(Color.WHITE);
-
-            HBox container = new HBox(8);
-            container.setAlignment(Pos.CENTER);
-            container.getChildren().addAll(txtEmoji, lblTexto);
-
-            btn.setGraphic(container);
-            btn.setStyle("-fx-background-color: " + corNormal + "; -fx-background-radius: 8; -fx-cursor: hand;");
-            return btn;
-        }
-
-        private void atualizarEstiloBotoes(Button btnAtivo) {
-            Button[] todos = {btnCadastrar, btnEditar, btnExcluir};
-            for (Button b : todos) {
-                String[] cores = (String[]) b.getUserData();
-                if (b == btnAtivo) {
-                    b.setStyle("-fx-background-color: " + cores[1] + "; -fx-background-radius: 8; -fx-effect: innerShadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 0);");
-                } else {
-                    b.setStyle("-fx-background-color: " + cores[0] + "; -fx-background-radius: 8;");
-                }
+            } catch (IllegalStateException ie) {
+                new Alerta().mostrar("Não permitido", ie.getMessage(), Alerta.Tipo.AVISO);
+            } catch (Exception e) {
+                new Alerta().mostrar("Erro", e.getMessage(), Alerta.Tipo.ERRO);
             }
         }
+    }
 
-        private VBox criarCampoInput(String label, Control input) {
-            VBox v = new VBox(5);
-            Label l = new Label(label);
-            l.setFont(FONTE_CORPO);
-            l.setTextFill(Color.web("#64748B"));
+    private Button criarBotaoCrudComEmoji(String texto, String emoji, String corNormal, String corEscura) {
+        Button btn = new Button();
+        btn.setPrefWidth(180);
+        btn.setPrefHeight(50);
+        btn.setUserData(new String[]{corNormal, corEscura});
 
-            input.setPrefHeight(45);
-            input.setMaxWidth(Double.MAX_VALUE);
-            input.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 14px;");
+        Text txtEmoji = new Text(emoji);
+        txtEmoji.setFont(Font.font("Segoe UI Emoji", 20));
+        txtEmoji.setFill(Color.WHITE);
+        txtEmoji.setBoundsType(TextBoundsType.VISUAL);
 
-            v.getChildren().addAll(l, input);
-            return v;
-        }
+        Label lblTexto = new Label(texto);
+        lblTexto.setFont(Font.font("Poppins", FontWeight.BOLD, 18));
+        lblTexto.setTextFill(Color.WHITE);
+        lblTexto.setPadding(Insets.EMPTY);
 
-        private void styleSalvarButton(Button btn) {
-            btn.setFont(FONTE_BOTAO2);
-            btn.setPrefHeight(50);
-            btn.setMaxWidth(Double.MAX_VALUE);
-            String styleBase = "-fx-background-color: " + HEX_VERMELHO + "; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 16px;";
-            String styleHover = "-fx-background-color: #B91C1C; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 16px;";
+        HBox container = new HBox(8);
+        container.setAlignment(Pos.CENTER);
+        container.getChildren().addAll(txtEmoji, lblTexto);
 
-            btn.setStyle(styleBase);
-            btn.setOnMouseEntered(e -> btn.setStyle(styleHover));
-            btn.setOnMouseExited(e -> btn.setStyle(styleBase));
-            
+        btn.setGraphic(container);
+        btn.setStyle("-fx-background-color: " + corNormal + "; -fx-background-radius: 8; -fx-cursor: hand;");
+        return btn;
+    }
+
+    private void atualizarSelecaoBotoes(Button btnAtivo) {
+        Button[] todos = {btnCadastrar, btnEditar, btnExcluir};
+        for (Button b : todos) {
+            String[] cores = (String[]) b.getUserData();
+            if (b == btnAtivo) {
+                b.setStyle("-fx-background-color: " + cores[1] + "; -fx-background-radius: 8; -fx-effect: innerShadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 0);");
+            } else {
+                b.setStyle("-fx-background-color: " + cores[0] + "; -fx-background-radius: 8;");
+            }
         }
     }
+
+    private VBox criarCampoInput(String label, Control input) {
+        VBox v = new VBox(5);
+        Label l = new Label(label);
+        l.setFont(FONTE_CORPO);
+        l.setTextFill(Color.web("#64748B"));
+        input.setPrefHeight(45);
+        input.setMaxWidth(Double.MAX_VALUE);
+        input.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 14px;");
+        v.getChildren().addAll(l, input);
+        return v;
+    }
+
+    private void styleSalvarButton(Button btn) {
+        btn.setFont(FONTE_BOTAO2);
+        btn.setPrefHeight(50);
+        btn.setMaxWidth(Double.MAX_VALUE);
+        String styleBase = "-fx-background-color: " + HEX_VERMELHO + "; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 16px;";
+        String styleHover = "-fx-background-color: #B91C1C; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 16px;";
+        btn.setStyle(styleBase);
+        btn.setOnMouseEntered(e -> btn.setStyle(styleHover));
+        btn.setOnMouseExited(e -> btn.setStyle(styleBase));
+    }
+}
