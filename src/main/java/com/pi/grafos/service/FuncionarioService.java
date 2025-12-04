@@ -23,7 +23,6 @@ public class FuncionarioService {
     }
 
     // Metodo único para Salvar (Novo) ou Atualizar (Editar)
-
     @Transactional
     public void salvarOuAtualizar(Long id, String nome, Cargos cargo, String email, String telefone) {
         // 1. Validações de Regra de Negócio
@@ -36,18 +35,13 @@ public class FuncionarioService {
             throw new IllegalArgumentException("O cargo é obrigatório.");
         }
 
-        // 3. Validação de Contato (CORREÇÃO AQUI)
-        // Verificamos se ESTÁ vazio (null ou string em branco)
+        // 3. Validação de Contato
         boolean emailVazio = (email == null || email.trim().isEmpty());
         boolean telefoneVazio = (telefone == null || telefone.trim().isEmpty());
 
-        // A regra é: Se AMBOS estiverem vazios, lança erro.
-        // Se pelo menos um tiver valor, passa.
         if (emailVazio && telefoneVazio) {
             throw new IllegalArgumentException("É obrigatório informar pelo menos um contato (E-mail ou Telefone).");
         }
-
-        // Aqui entra a lógica de validar formato de email ou telefone se quisesse)
 
         Funcionario funcionario;
 
@@ -83,15 +77,14 @@ public class FuncionarioService {
     }
 
     public List<Funcionario> findByCargos(Cargos cargo) {
-        // O repositório deve ter o método findByCargo (singular) padrão do JPA
         List<Funcionario> lista = repository.findByCargo(cargo);
         if (lista == null) {
-            return new ArrayList<>(); // Retorna lista vazia em vez de null para evitar erros
+            return new ArrayList<>();
         }
         return lista;
     }
 
     public List<Funcionario> findAllNoTeams() {
-        return repository.findByEquipeIsNull(); // Supondo que você criou esse método no repo
+        return repository.findByEquipesIsEmpty();
     }
 }

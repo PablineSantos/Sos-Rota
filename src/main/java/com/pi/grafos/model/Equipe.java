@@ -6,13 +6,7 @@ import java.util.stream.Collectors;
 
 import com.pi.grafos.model.enums.Cargos;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,17 +15,34 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Equipe {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idEquipe;
 
+    @Column(nullable = false)
     private String nomeEquipe;
 
+    @Transient // Indica que esse campo não precisa virar coluna no banco
     private int maxMembros = 10;
 
-    @OneToMany(mappedBy = "equipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(nullable = false)
+    private String turno; // MANHÃ, TARDE, NOITE
+
+    // Relacionamento Muitos-para-Muitos (O Dono da Relação)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "equipe_profissional",
+            joinColumns = @JoinColumn(name = "equipe_id"),
+            inverseJoinColumns = @JoinColumn(name = "profissional_id")
+    )
     private List<Funcionario> membros = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "id_ambulancia")
+    private Ambulancia ambulancia;
+
+    // --- MÉTODOS AUXILIARES DE LEITURA (Podem ficar) ---
 
     public List<Funcionario> getMedico() { return getMembrosPorCargo(Cargos.MEDICO); }
     public List<Funcionario> getCondutor() { return getMembrosPorCargo(Cargos.CONDUTOR); }
@@ -39,21 +50,18 @@ public class Equipe {
 
     private List<Funcionario> getMembrosPorCargo(Cargos cargo) {
         if (membros == null) return List.of();
-    
+
         return membros.stream()
                 .filter(m -> m.getCargo() == cargo)
                 .collect(Collectors.toList());
     }
 
-    public void addMembro(Funcionario funcionario) {
-        if (membros.size() >= maxMembros) {
-            throw new IllegalStateException(
-                "Equipe atingiu o número máximo de membros: " + maxMembros
-            );
-        }
-    
-        funcionario.setEquipe(this);
-        membros.add(funcionario);
+    // toString para aparecer corretamente no ComboBox
+    @Override
+    public String toString() {
+        return nomeEquipe;
     }
-    
+
+    // REMOVIDO: public void addMembro(...)
+    // Motivo: Esse método manual causava o erro de tipagem e conflitava com a lógica do Service.
 }

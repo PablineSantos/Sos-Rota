@@ -3,6 +3,7 @@ package com.pi.grafos.view.screens;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.pi.grafos.service.AmbulanciaService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,6 +54,9 @@ import javafx.stage.Stage;
 public class TelaDashboard {
     @Autowired
     private FuncionarioService funcionarioService;
+
+    @Autowired
+    private AmbulanciaService ambulanciaService;
 
     @Autowired
     private AmbulanciaRepository ambulanciaRepository;
@@ -124,7 +128,7 @@ public class TelaDashboard {
         btnFrota.setOnAction(e -> {
             atualizarEstiloBotao(btnFrota);
             // Injeta os repositórios reais do Spring na View
-            setConteudoCentral(new GestaoAmbulanciasView(ambulanciaRepository, localizacaoRepository).criarView());
+            setConteudoCentral(new GestaoAmbulanciasView(ambulanciaService, localizacaoRepository).criarView());
         });
 
         Button btnEquipe = criarBotaoMenu("Equipe", "👨‍⚕️");

@@ -19,20 +19,27 @@ import lombok.ToString;
 @Setter
 public class Cidade {
 
+    // Construtores
+    public Cidade() {} // Construtor vazio obrigatório pro JPA
+
+    public Cidade(String nome) { // O construtor que você quer usar
+        this.nomeCidade = nome;
+    }
+
+    // Relacionamento com todos os bairros da cidade
+    // Relacionamento com todas as ruas da cidade
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idCidade;
 
     private String nomeCidade;
 
-    // Relacionamento com todos os bairros da cidade
     @OneToMany(mappedBy = "cidade")
     @ToString.Exclude
     private List<Localizacao> locais = new ArrayList<>();
 
-    // Relacionamento com todas as ruas da cidade
     @OneToMany(mappedBy = "cidade")
     @ToString.Exclude
     private List<Rua> ruas = new ArrayList<>();
-    
+
 }
