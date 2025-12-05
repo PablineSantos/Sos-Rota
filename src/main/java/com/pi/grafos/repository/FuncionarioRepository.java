@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import com.pi.grafos.model.Equipe;
 import com.pi.grafos.model.Funcionario;
 import com.pi.grafos.model.enums.Cargos;
+import com.pi.grafos.model.enums.Turno;
 
 @Repository
 public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> {
@@ -31,5 +32,5 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
     // Query personalizada para validar turno
     @Query("SELECT f FROM Funcionario f WHERE f.idFuncionario NOT IN " +
             "(SELECT m.idFuncionario FROM Equipe e JOIN e.membros m WHERE e.turno = :turno)")
-    List<Funcionario> findDisponiveisPorTurno(@Param("turno") String turno);
+    List<Funcionario> findDisponiveisPorTurno(@Param("turno") Turno turno);
 }

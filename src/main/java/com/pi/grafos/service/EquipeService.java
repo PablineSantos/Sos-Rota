@@ -12,6 +12,7 @@ import com.pi.grafos.model.Equipe;
 import com.pi.grafos.model.Funcionario;
 import com.pi.grafos.model.enums.AmbulanciaStatus; // Importante!
 import com.pi.grafos.model.enums.Cargos;
+import com.pi.grafos.model.enums.Turno;
 import com.pi.grafos.repository.AmbulanciaRepository;
 import com.pi.grafos.repository.EquipeRepository;
 import com.pi.grafos.repository.FuncionarioRepository;
@@ -36,11 +37,7 @@ public class EquipeService {
         return repository.findAll();
     }
 
-    public List<Funcionario> buscarDisponiveisParaTurno(String turno, Equipe equipeAtual) {
-        if (turno == null || turno.isEmpty()) {
-            return new ArrayList<>();
-        }
-
+    public List<Funcionario> buscarDisponiveisParaTurno(Turno turno, Equipe equipeAtual) {
         List<Funcionario> disponiveis = funcRepository.findDisponiveisPorTurno(turno);
 
         if (equipeAtual != null && equipeAtual.getIdEquipe() != null) {
@@ -55,7 +52,7 @@ public class EquipeService {
     }
 
     @Transactional
-    public void salvarEquipe(Equipe equipe, List<Funcionario> membrosSelecionados, Ambulancia ambulancia, String turno) {
+    public void salvarEquipe(Equipe equipe, List<Funcionario> membrosSelecionados, Ambulancia ambulancia, Turno turno) {
 
         // 1. Validações Básicas
         if (equipe.getNomeEquipe() == null || equipe.getNomeEquipe().trim().isEmpty()) {

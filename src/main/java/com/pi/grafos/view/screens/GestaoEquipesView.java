@@ -4,6 +4,7 @@ import com.pi.grafos.model.Ambulancia;
 import com.pi.grafos.model.Equipe;
 import com.pi.grafos.model.Funcionario;
 import com.pi.grafos.model.enums.Cargos;
+import com.pi.grafos.model.enums.Turno;
 import com.pi.grafos.service.AmbulanciaService;
 import com.pi.grafos.service.EquipeService;
 import com.pi.grafos.view.components.Alerta;
@@ -43,7 +44,7 @@ public class GestaoEquipesView {
     // Componentes Globais
     private VBox containerMembros;
     private TextField txtNomeEquipe;
-    private ComboBox<String> comboTurno;
+    private ComboBox<Turno> comboTurno;
     private ComboBox<Ambulancia> comboAmbulancia;
 
     private List<ComboBox<Funcionario>> combosMembrosDinamicos = new ArrayList<>();
@@ -141,7 +142,7 @@ public class GestaoEquipesView {
 
         // 2. Turno
         comboTurno = new ComboBox<>();
-        comboTurno.getItems().addAll("MANHÃ", "TARDE", "NOITE");
+        comboTurno.setItems(FXCollections.observableArrayList(Turno.values()));
         comboTurno.setPrefWidth(150);
         if(equipe != null) {
             comboTurno.setValue(equipe.getTurno());
@@ -150,7 +151,7 @@ public class GestaoEquipesView {
 
         // Listener Turno
         comboTurno.setOnAction(e -> {
-            String turnoSelecionado = comboTurno.getValue();
+            Turno turnoSelecionado = comboTurno.getValue();
             if (turnoSelecionado != null) {
                 cacheFuncionariosDisponiveis = equipeService.buscarDisponiveisParaTurno(turnoSelecionado, equipe);
                 containerMembros.getChildren().clear();
@@ -304,7 +305,7 @@ public class GestaoEquipesView {
                 Label lblNome = new Label(eq.getNomeEquipe());
                 lblNome.setStyle("-fx-font-family: 'Poppins'; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #1E293B;");
 
-                String turno = eq.getTurno() != null ? eq.getTurno() : "N/A";
+                Turno turno = eq.getTurno() != null ? eq.getTurno() : Turno.MANHA;
                 String placa = (eq.getAmbulancia() != null) ? eq.getAmbulancia().getPlaca() : "Sem Veículo";
                 String qtd = eq.getMembros().size() + " profissionais";
 

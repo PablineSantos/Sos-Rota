@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.pi.grafos.model.enums.Cargos;
+import com.pi.grafos.model.enums.Turno;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -27,7 +28,7 @@ public class Equipe {
     private int maxMembros = 10;
 
     @Column(nullable = false)
-    private String turno; // MANHÃ, TARDE, NOITE
+    private Turno turno; // Alterado pelo enum Turno
 
     // Relacionamento Muitos-para-Muitos (O Dono da Relação)
     @ManyToMany(fetch = FetchType.EAGER)
