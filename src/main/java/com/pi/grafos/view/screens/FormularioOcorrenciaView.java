@@ -1,26 +1,63 @@
 package com.pi.grafos.view.screens;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+import com.pi.grafos.model.Ambulancia;
+import com.pi.grafos.model.Localizacao;
+import com.pi.grafos.model.enums.TipoLocalizacao; // Certifique-se que o nome da classe é este mesmo (está minúsculo no seu arquivo)
+import com.pi.grafos.repository.AmbulanciaRepository;
+import com.pi.grafos.repository.LocalizacaoRepository;
+import com.pi.grafos.service.grafosService;
+import com.pi.grafos.service.grafosService.SugestaoAmbulancia;
+import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
+import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_CLARO;
+import static com.pi.grafos.view.styles.AppStyles.COR_VERMELHO_RESGATE;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_BOTAO2;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_CORPO;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_PEQUENA;
+import static com.pi.grafos.view.styles.AppStyles.FONTE_TITULO;
+import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
+
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import static com.pi.grafos.view.styles.AppStyles.*;
-
 public class FormularioOcorrenciaView {
 
-    // Variáveis de acesso aos dados
-    private ComboBox<String> comboBairro;
+    // Dependências (Services e Repositories)
+    private final LocalizacaoRepository localizacaoRepository;
+    private final AmbulanciaRepository ambulanciaRepository;
+    private final grafosService grafosService;
+
+    // Variáveis de acesso aos dados da tela
+    private ComboBox<Localizacao> comboBairro; // Mudou de String para Localizacao
     private ComboBox<String> comboTipo;
     private ComboBox<String> comboGravidade;
     private TextArea txtObservacao;
     private Label lblSlaInfo;
+
+    // Construtor para Injeção de Dependências
+    public FormularioOcorrenciaView(LocalizacaoRepository localizacaoRepository,
+                                    AmbulanciaRepository ambulanciaRepository,
+                                    grafosService grafosService) {
+        this.localizacaoRepository = localizacaoRepository;
+        this.ambulanciaRepository = ambulanciaRepository;
+        this.grafosService = grafosService;
+    }
 
     public VBox criarView() {
         // Layout Base
@@ -46,31 +83,11 @@ public class FormularioOcorrenciaView {
 
         // --- CAMPOS ---
 
-        // 1. Bairro e Data
+        // 1. Bairro (Carregado do Banco)
         HBox row1 = new HBox(20);
         comboBairro = new ComboBox<>();
-        comboBairro.setItems(FXCollections.observableArrayList(
-                "Alto da Serra",
-                "Bela Vista",
-                "Centro",
-                "Colina Azul",
-                "Distrito Industrial",
-                "Ecoparque Sul",
-                "Jardim América",
-                "Lago Azul",
-                "Morada do Sol",
-                "Nova Alvorada",
-                "Recanto Verde",
-                "Residencial Esperança",
-                "Residencial Florença",
-                "Setor Central II",
-                "Setor das Palmeiras",
-                "Setor Industrial Norte",
-                "Setor Leste",
-                "Setor Oeste",
-                "Vale do Cerrado",
-                "Vila Nova"
-        ));
+        carregarBairrosDoBanco(); // Método auxiliar para popular a lista
+        
         VBox boxBairro = criarCampoInput("Bairro", comboBairro);
 
         // 2. O Endereço Real (Informação para o Motorista)
@@ -106,7 +123,7 @@ public class FormularioOcorrenciaView {
         lblSlaInfo = new Label("");
         lblSlaInfo.setFont(FONTE_PEQUENA);
         lblSlaInfo.setPadding(new Insets(5, 0, 0, 0));
-        boxGravidade.getChildren().add(lblSlaInfo); // Adiciona embaixo do combo
+        boxGravidade.getChildren().add(lblSlaInfo);
 
         // Lógica SLA
         comboGravidade.setOnAction(e -> atualizarSlaInfo());
@@ -143,59 +160,78 @@ public class FormularioOcorrenciaView {
         btnSalvar.setFont(FONTE_BOTAO2);
         btnSalvar.setPrefHeight(50);
 
-        // Define o estilo BASE (Normal)
-        String estiloNormal = "-fx-background-color: " + HEX_VERMELHO + "; " +
-                "-fx-text-fill: white; " +
-                "-fx-background-radius: 5; " +
-                "-fx-cursor: hand; " +
-                "-fx-font-family: 'Poppins'; " + // Força a fonte no CSS também por segurança
-                "-fx-font-weight: bold; " +
-                "-fx-font-size: 18px;"; // Tamanho da FONTE_BOTAO2
-
-        // Define o estilo HOVER (Mouse em cima) - Apenas muda a cor de fundo
-        String estiloHover = "-fx-background-color: #B91C1C; " + // Um vermelho mais escuro
-                "-fx-text-fill: white; " +
-                "-fx-background-radius: 5; " +
-                "-fx-cursor: hand; " +
-                "-fx-font-family: 'Poppins'; " +
-                "-fx-font-weight: bold; " +
-                "-fx-font-size: 18px;";
-
-        // Aplica o normal inicialmente
+        // Estilos Botão
+        String estiloNormal = "-fx-background-color: " + HEX_VERMELHO + "; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-family: 'Poppins'; -fx-font-weight: bold; -fx-font-size: 18px;";
+        String estiloHover = "-fx-background-color: #B91C1C; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-family: 'Poppins'; -fx-font-weight: bold; -fx-font-size: 18px;";
         btnSalvar.setStyle(estiloNormal);
-
-        // Adiciona os Listeners para trocar o estilo SEM perder a fonte
         btnSalvar.setOnMouseEntered(e -> btnSalvar.setStyle(estiloHover));
         btnSalvar.setOnMouseExited(e -> btnSalvar.setStyle(estiloNormal));
 
-
+        // --- AÇÃO DO BOTÃO (INTEGRAÇÃO COM GRAFO) ---
         btnSalvar.setOnAction(e -> {
-            // Pega a janela atual para ser dona do modal
             Stage stageAtual = (Stage) btnSalvar.getScene().getWindow();
 
-            String bairro = comboBairro.getValue();
+            Localizacao bairroSelecionado = comboBairro.getValue();
             String gravidade = comboGravidade.getValue();
 
-            if (bairro != null && gravidade != null) {
-                // Abre o Modal
-                new ModalSelecaoAmbulancia().exibir(stageAtual, bairro, gravidade);
+            if (bairroSelecionado != null && gravidade != null) {
+                try {
+                    System.out.println("Calculando rota para: " + bairroSelecionado.getNome());
+
+                    // 1. Busca frota disponível no banco
+                    List<Ambulancia> frotaAtiva = ambulanciaRepository.findAll(); // Pode filtrar por isAtivo aqui ou no service
+
+                    // 2. Chama o Algoritmo de Dijkstra (Seu serviço)
+                    List<SugestaoAmbulancia> sugestoes = grafosService.sugerirAmbulancias(
+                        bairroSelecionado.getIdLocal(), 
+                        frotaAtiva
+                    );
+
+                    // 3. Exibe o Modal passando os dados reais
+                    // OBS: Você precisará atualizar o método 'exibir' do ModalSelecaoAmbulancia para aceitar essa lista!
+                    new ModalSelecaoAmbulancia().exibir(stageAtual, bairroSelecionado.getNome(), gravidade); 
+                    // ^^^ Para passar 'sugestoes', altere a assinatura do método no Modal.
+                    
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Erro ao calcular rotas: " + ex.getMessage());
+                    alert.show();
+                }
+
             } else {
                 System.out.println("Preencha os campos!");
+                Alert alert = new Alert(Alert.AlertType.WARNING, "Selecione o Bairro e a Gravidade.");
+                alert.show();
             }
         });
 
         boxBtn.getChildren().addAll(btnCancel, btnSalvar);
-
         formCard.getChildren().addAll(lblTitulo, lblDesc, row1, row2, boxObs, boxBtn);
         root.getChildren().add(formCard);
 
         return root;
     }
 
+    // --- MÉTODOS AUXILIARES ---
 
+    private void carregarBairrosDoBanco() {
+        try {
+            // Busca apenas o que é BAIRRO (ignora Bases/Hospitais se necessário, ou traz tudo)
+            List<Localizacao> bairros = localizacaoRepository.findByTipo(TipoLocalizacao.BAIRRO);
+            
+            // Se a lista vier vazia, tenta buscar tudo (caso o Seeder não tenha classificado ainda)
+            if (bairros.isEmpty()) {
+                bairros = localizacaoRepository.findAll();
+            }
 
+            comboBairro.setItems(FXCollections.observableArrayList(bairros));
+            
+        } catch (Exception e) {
+            System.err.println("Erro ao carregar bairros: " + e.getMessage());
+            // Fallback visual vazio ou alerta
+        }
+    }
 
-    // Método auxiliar para montar Label + Input
     private VBox criarCampoInput(String label, Control input) {
         VBox v = new VBox(8);
         Label l = new Label(label);
@@ -204,7 +240,6 @@ public class FormularioOcorrenciaView {
 
         input.setPrefHeight(45);
         input.setMaxWidth(Double.MAX_VALUE);
-        // Estilo padrão para inputs
         if (!(input instanceof TextArea)) {
             input.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 14px;");
         }
@@ -213,7 +248,6 @@ public class FormularioOcorrenciaView {
         return v;
     }
 
-    // Metodo que mostra a mensagem informando o SLA
     private void atualizarSlaInfo() {
         String val = comboGravidade.getValue();
         if (val == null) return;

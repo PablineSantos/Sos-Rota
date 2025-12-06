@@ -14,7 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // <--- IMPORTANTE
 
+import com.pi.grafos.model.Ambulancia;
 import com.pi.grafos.model.Cidade;
 import com.pi.grafos.repository.CidadeRepository;
 
@@ -47,22 +49,42 @@ public class grafosService {
 
     // =========================
     // CLASSE CONSTRUIR GRAFO
-    // (ANTES ESTAVA EXTERNA – AGORA ESTÁ AQUI)
     // =========================
     public static class ConstruirGrafo {
 
         private Map<Integer, List<Aresta>> caminho = new HashMap<>();
 
         public void addAresta(Long origem, Long destino, double distancia) {
-        caminho.putIfAbsent(origem.intValue(), new ArrayList<>()); 
-        caminho.putIfAbsent(destino.intValue(), new ArrayList<>());
+            caminho.putIfAbsent(origem.intValue(), new ArrayList<>()); 
+            caminho.putIfAbsent(destino.intValue(), new ArrayList<>());
 
-        caminho.get(origem.intValue()).add(new Aresta(destino.intValue(), distancia));
-        caminho.get(destino.intValue()).add(new Aresta(origem.intValue(), distancia));
-    }
+            caminho.get(origem.intValue()).add(new Aresta(destino.intValue(), distancia));
+            caminho.get(destino.intValue()).add(new Aresta(origem.intValue(), distancia));
+        }
 
         public Map<Integer, List<Aresta>> getCaminho() {
             return caminho;
+        }
+    }
+
+    // =========================
+    // NOVA CLASSE PARA RETORNAR A SUGESTÃO
+    // =========================
+    public static class SugestaoAmbulancia {
+        private Ambulancia ambulancia;
+        private double distanciaKm;
+
+        public SugestaoAmbulancia(Ambulancia ambulancia, double distanciaKm) {
+            this.ambulancia = ambulancia;
+            this.distanciaKm = distanciaKm;
+        }
+
+        public Ambulancia getAmbulancia() { return ambulancia; }
+        public double getDistanciaKm() { return distanciaKm; }
+        
+        @Override
+        public String toString() {
+            return String.format("%s - %.1f Km", ambulancia.getPlaca(), distanciaKm);
         }
     }
 
@@ -87,22 +109,30 @@ public class grafosService {
 
             int atual = (int) fila.poll()[0];
 
-            for (Aresta ar : grafo.getCaminho().get(atual)) {
+            // Verifica se o nó atual tem vizinhos antes de iterar
+            if (grafo.getCaminho().containsKey(atual)) {
+                for (Aresta ar : grafo.getCaminho().get(atual)) {
 
-                int vizinho = ar.getDestino();
-                double novaDist = distancia.get(atual) + ar.getDistancia();
+                    int vizinho = ar.getDestino();
+                    double novaDist = distancia.get(atual) + ar.getDistancia();
 
-                if (novaDist < distancia.get(vizinho)) {
-                    distancia.put(vizinho, novaDist);
-                    anterior.put(vizinho, atual);
+                    if (novaDist < distancia.get(vizinho)) {
+                        distancia.put(vizinho, novaDist);
+                        anterior.put(vizinho, atual);
 
-                    fila.add(new double[]{vizinho, novaDist});
+                        fila.add(new double[]{vizinho, novaDist});
+                    }
                 }
             }
         }
 
         LinkedList<Integer> caminho = new LinkedList<>();
         Integer atual = destino;
+
+        // Se não houver caminho até o destino (distancia ainda é infinita ou não tem anterior), retorna vazio ou trata
+        if (distancia.get(destino) == Double.MAX_VALUE) {
+            return caminho; // Caminho vazio
+        }
 
         while (atual != null) {
             caminho.addFirst(atual);
@@ -122,10 +152,12 @@ public class grafosService {
             int atual = caminho.get(i);
             int prox = caminho.get(i + 1);
 
-            for (Aresta a : g.getCaminho().get(atual)) {
-                if (a.getDestino() == prox) {
-                    soma += a.getDistancia();
-                    break;
+            if (g.getCaminho().containsKey(atual)) {
+                for (Aresta a : g.getCaminho().get(atual)) {
+                    if (a.getDestino() == prox) {
+                        soma += a.getDistancia();
+                        break;
+                    }
                 }
             }
         }
@@ -133,60 +165,95 @@ public class grafosService {
     }
 
     // =========================
-    // CARREGAR GRAFO DO CSV
+    // CARREGAR GRAFO DO CSV (BANCO DE DADOS)
     // =========================
     @Value("classpath:ruas_conexoes.csv")
     private Resource recurso;
 
-public ConstruirGrafo carregarGrafo(Long idCidade) {
+    // ADICIONADO @Transactional para evitar erro de LazyInitializationException ao pegar as ruas
+    @Transactional(readOnly = true) 
+    public ConstruirGrafo carregarGrafo(Long idCidade) {
 
-    // Busca a cidade no banco
-    Cidade cidade = cidadeRepository.findByIdCidade(idCidade)
-            .orElseThrow(() -> new RuntimeException("Cidade não encontrada"));
+        // Busca a cidade no banco
+        Cidade cidade = cidadeRepository.findByIdCidade(idCidade)
+                .orElseThrow(() -> new RuntimeException("Cidade não encontrada"));
 
-    // Cria o grafo
-    ConstruirGrafo grafo = new ConstruirGrafo();
+        // Cria o grafo
+        ConstruirGrafo grafo = new ConstruirGrafo();
 
-    // Adiciona todas as ruas ao grafo
-    cidade.getRuas().forEach(rua -> {
-        grafo.addAresta(
-            rua.getOrigem().getIdLocal(),       // Long
-            rua.getDestino().getIdLocal(),      // Long
-            rua.getDistancia().doubleValue()    // double
-        );
-    });
+        // Adiciona todas as ruas ao grafo
+        // O @Transactional mantem a sessão aberta aqui
+        cidade.getRuas().forEach(rua -> {
+            if (rua.getOrigem() != null && rua.getDestino() != null) {
+                grafo.addAresta(
+                    rua.getOrigem().getIdLocal(),       
+                    rua.getDestino().getIdLocal(),      
+                    rua.getDistancia().doubleValue()    
+                );
+            }
+        });
 
-    return grafo;
-}
-
+        return grafo;
+    }
 
     public ConstruirGrafo carregarGrafoDeTexto(String csv) {
 
-    ConstruirGrafo grafo = new ConstruirGrafo();
+        ConstruirGrafo grafo = new ConstruirGrafo();
 
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(
-            new java.io.ByteArrayInputStream(csv.getBytes())))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                new java.io.ByteArrayInputStream(csv.getBytes())))) {
 
-        String line = br.readLine(); 
-        line = br.readLine();        
+            String line = br.readLine(); 
+            line = br.readLine();        
 
-        while (line != null) {
-            String[] vet = line.split(",");
+            while (line != null) {
+                String[] vet = line.split(",");
+                // Lógica antiga simplificada...
+                line = br.readLine();
+            }
 
-            int origem = Integer.parseInt(vet[1]);
-            int destino = Integer.parseInt(vet[2]);
-            double distancia = Double.parseDouble(vet[3]);
-
-            //grafo.addAresta(origem, destino, distancia);
-
-            line = br.readLine();
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao ler conteúdo CSV", e);
         }
 
-    } catch (Exception e) {
-        throw new RuntimeException("Erro ao ler conteúdo CSV", e);
+        return grafo;
     }
 
-    return grafo;
-}
+    // =========================
+    // MÉTODO DE SUGESTÃO (IMPLEMENTAÇÃO MINIMA)
+    // =========================
+    @Transactional(readOnly = true)
+    public List<SugestaoAmbulancia> sugerirAmbulancias(Long idBairroOcorrencia, List<Ambulancia> frotaAtiva) {
+        // 1. Carrega o grafo da cidade (Fixando ID 1 - Cidália)
+        ConstruirGrafo grafo = carregarGrafo(1L); 
 
+        List<SugestaoAmbulancia> ranking = new ArrayList<>();
+        int destino = idBairroOcorrencia.intValue();
+
+        for (Ambulancia amb : frotaAtiva) {
+            // Verifica se a ambulância tem uma base/unidade definida
+            if (amb.getUnidade() != null && Boolean.TRUE.equals(amb.getIsAtivo())) {
+                
+                int origem = amb.getUnidade().getIdLocal().intValue();
+
+                // Calcula o caminho
+                List<Integer> rota = menorCaminho(grafo, origem, destino);
+                
+                // Se a lista rota não estiver vazia, calcula a distância
+                if (!rota.isEmpty()) {
+                    double distancia = calculaDistanciaTotal(grafo, rota);
+                    
+                    // Adiciona na lista se achou caminho válido
+                    if (distancia > 0 || origem == destino) {
+                        ranking.add(new SugestaoAmbulancia(amb, distancia));
+                    }
+                }
+            }
+        }
+
+        // Ordena: Menor distância primeiro
+        ranking.sort(Comparator.comparingDouble(SugestaoAmbulancia::getDistanciaKm));
+
+        return ranking;
+    }
 }
