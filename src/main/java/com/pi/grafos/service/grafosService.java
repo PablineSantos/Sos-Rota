@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // <--- IMPORTANTE
+import org.springframework.transaction.annotation.Transactional;
 
 import com.pi.grafos.model.Ambulancia;
 import com.pi.grafos.model.Cidade;
@@ -109,7 +109,6 @@ public class grafosService {
 
             int atual = (int) fila.poll()[0];
 
-            // Verifica se o nó atual tem vizinhos antes de iterar
             if (grafo.getCaminho().containsKey(atual)) {
                 for (Aresta ar : grafo.getCaminho().get(atual)) {
 
@@ -129,9 +128,8 @@ public class grafosService {
         LinkedList<Integer> caminho = new LinkedList<>();
         Integer atual = destino;
 
-        // Se não houver caminho até o destino (distancia ainda é infinita ou não tem anterior), retorna vazio ou trata
         if (distancia.get(destino) == Double.MAX_VALUE) {
-            return caminho; // Caminho vazio
+            return caminho; 
         }
 
         while (atual != null) {
@@ -170,19 +168,17 @@ public class grafosService {
     @Value("classpath:ruas_conexoes.csv")
     private Resource recurso;
 
-    // ADICIONADO @Transactional para evitar erro de LazyInitializationException ao pegar as ruas
     @Transactional(readOnly = true) 
     public ConstruirGrafo carregarGrafo(Long idCidade) {
 
-        // Busca a cidade no banco
-        Cidade cidade = cidadeRepository.findByIdCidade(idCidade)
-                .orElseThrow(() -> new RuntimeException("Cidade não encontrada"));
+        // Busca a cidade no banco pelo ID passado
+        // Caso o método findByIdCidade não exista no repositório padrão JpaRepository, 
+        // troque por findById(idCidade)
+        Cidade cidade = cidadeRepository.findById(idCidade)
+                .orElseThrow(() -> new RuntimeException("Cidade não encontrada com ID: " + idCidade));
 
-        // Cria o grafo
         ConstruirGrafo grafo = new ConstruirGrafo();
 
-        // Adiciona todas as ruas ao grafo
-        // O @Transactional mantem a sessão aberta aqui
         cidade.getRuas().forEach(rua -> {
             if (rua.getOrigem() != null && rua.getDestino() != null) {
                 grafo.addAresta(
@@ -197,53 +193,52 @@ public class grafosService {
     }
 
     public ConstruirGrafo carregarGrafoDeTexto(String csv) {
-
         ConstruirGrafo grafo = new ConstruirGrafo();
-
         try (BufferedReader br = new BufferedReader(new InputStreamReader(
                 new java.io.ByteArrayInputStream(csv.getBytes())))) {
-
             String line = br.readLine(); 
             line = br.readLine();        
-
             while (line != null) {
-                String[] vet = line.split(",");
-                // Lógica antiga simplificada...
                 line = br.readLine();
             }
-
         } catch (Exception e) {
             throw new RuntimeException("Erro ao ler conteúdo CSV", e);
         }
-
         return grafo;
     }
 
     // =========================
-    // MÉTODO DE SUGESTÃO (IMPLEMENTAÇÃO MINIMA)
+    // MÉTODO DE SUGESTÃO (CORRIGIDO)
     // =========================
     @Transactional(readOnly = true)
     public List<SugestaoAmbulancia> sugerirAmbulancias(Long idBairroOcorrencia, List<Ambulancia> frotaAtiva) {
-        // 1. Carrega o grafo da cidade (Fixando ID 1 - Cidália)
-        ConstruirGrafo grafo = carregarGrafo(1L); 
+        
+        // --- CORREÇÃO AQUI ---
+        // Em vez de fixar 1L, pegamos a primeira cidade disponível no banco.
+        List<Cidade> cidades = cidadeRepository.findAll();
+        if (cidades.isEmpty()) {
+            throw new RuntimeException("Nenhuma cidade cadastrada no banco de dados!");
+        }
+        // Pega a primeira cidade que encontrar (Cidália)
+        Long idCidadeReal = cidades.get(0).getIdCidade(); 
+
+        // Carrega o grafo usando o ID correto
+        ConstruirGrafo grafo = carregarGrafo(idCidadeReal); 
+        // ---------------------
 
         List<SugestaoAmbulancia> ranking = new ArrayList<>();
         int destino = idBairroOcorrencia.intValue();
 
         for (Ambulancia amb : frotaAtiva) {
-            // Verifica se a ambulância tem uma base/unidade definida
             if (amb.getUnidade() != null && Boolean.TRUE.equals(amb.getIsAtivo())) {
                 
                 int origem = amb.getUnidade().getIdLocal().intValue();
 
-                // Calcula o caminho
                 List<Integer> rota = menorCaminho(grafo, origem, destino);
                 
-                // Se a lista rota não estiver vazia, calcula a distância
                 if (!rota.isEmpty()) {
                     double distancia = calculaDistanciaTotal(grafo, rota);
                     
-                    // Adiciona na lista se achou caminho válido
                     if (distancia > 0 || origem == destino) {
                         ranking.add(new SugestaoAmbulancia(amb, distancia));
                     }
@@ -251,7 +246,6 @@ public class grafosService {
             }
         }
 
-        // Ordena: Menor distância primeiro
         ranking.sort(Comparator.comparingDouble(SugestaoAmbulancia::getDistanciaKm));
 
         return ranking;
