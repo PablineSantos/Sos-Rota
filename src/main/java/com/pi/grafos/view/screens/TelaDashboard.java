@@ -77,6 +77,10 @@ public class TelaDashboard {
 
     @Autowired
     private grafosService grafosService;
+    
+    // Injeção da nova tela de relatórios
+    @Autowired
+    private TelaRelatoriosView telaRelatoriosView;
 
 
     // --- CONFIGURAÇÕES VISUAIS ---
@@ -152,10 +156,12 @@ public class TelaDashboard {
             setConteudoCentral(new GestaoFuncionariosView(funcionarioService).criarView());
         });
 
-        Button btnRelatorio = criarBotaoMenu("Relatórios", "");
+        // --- ATUALIZAÇÃO AQUI: Implementação do botão Relatórios ---
+        Button btnRelatorio = criarBotaoMenu("Relatórios", "📊");
         btnRelatorio.setOnAction(e -> {
             atualizarEstiloBotao(btnRelatorio);
-            setConteudoCentral(criarPlaceholderFormulario("Relatório"));
+            // Chama a nova view injetada
+            setConteudoCentral(telaRelatoriosView.criarView());
         });
 
         Region spacerMenu = new Region();
@@ -320,7 +326,6 @@ public class TelaDashboard {
         return btn;
     }
 
-    // --- CORREÇÃO AQUI NO MÉTODO DE CRIAR CARD ---
     private HBox criarCardOcorrencia(String titulo, String subtitulo, String corStatus, String bairro, String gravidade) {
         HBox card = new HBox(10);
         card.setPadding(new Insets(15));
@@ -337,17 +342,13 @@ public class TelaDashboard {
         card.setOnMouseClicked(e -> {
             System.out.println("Abrindo despacho rápido para: " + titulo);
             Stage stageAtual = (Stage) card.getScene().getWindow();
-            
-            // ATUALIZADO: Passamos 'null' para o ID e para a Lista, pois são dados fictícios.
-            // O modal vai abrir, mas mostrará "Nenhuma ambulância encontrada" ou "Erro".
-            // Isso resolve o erro de compilação.
             new ModalSelecaoAmbulancia().exibir(
                 stageAtual, 
-                null, // ID da ocorrência (não existe para card fictício)
+                null, 
                 bairro, 
                 gravidade, 
-                null, // Lista de sugestões (não calculada)
-                ocorrenciaService // Serviço injetado
+                null, 
+                ocorrenciaService 
             );
         });
 

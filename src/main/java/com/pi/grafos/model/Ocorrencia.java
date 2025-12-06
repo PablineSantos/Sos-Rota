@@ -1,6 +1,7 @@
 package com.pi.grafos.model;
 
 import com.pi.grafos.model.enums.OcorrenciaStatus;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -43,4 +44,14 @@ public class Ocorrencia {
 
     public Ambulancia getAmbulancia() { return ambulancia; }
     public void setAmbulancia(Ambulancia ambulancia) { this.ambulancia = ambulancia; }
+
+    private LocalDateTime dataHoraChamado; 
+    
+    private LocalDateTime dataHoraChegada; 
+    
+    private LocalDateTime dataHoraFinalizacao;
+
+    public Ocorrencia() {
+        this.dataHoraChamado = LocalDateTime.now();
+    }
 }
