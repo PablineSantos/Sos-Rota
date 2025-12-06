@@ -13,16 +13,15 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.pi.grafos.model.Ambulancia;
 import com.pi.grafos.model.Cidade;
 import com.pi.grafos.model.Localizacao;
 import com.pi.grafos.model.Rua;
-import com.pi.grafos.model.enums.AmbulanciaStatus;
-import com.pi.grafos.model.enums.TipoAmbulancia;
 import com.pi.grafos.model.enums.TipoLocalizacao;
 import com.pi.grafos.repository.AmbulanciaRepository;
 import com.pi.grafos.repository.CidadeRepository;
+import com.pi.grafos.repository.EquipeRepository;
 import com.pi.grafos.repository.LocalizacaoRepository;
+import com.pi.grafos.repository.OcorrenciaRepository;
 import com.pi.grafos.repository.RuaRepository;
 
 @Component
@@ -32,6 +31,8 @@ public class DataInitializer implements CommandLineRunner {
     private final LocalizacaoRepository localizacaoRepository;
     private final RuaRepository ruaRepository;
     private final AmbulanciaRepository ambulanciaRepository;
+    private final EquipeRepository equipeRepository;       // Adicionado
+    private final OcorrenciaRepository ocorrenciaRepository; // Adicionado para evitar erro se tiver ocorrência salva
 
     // IDs do CSV que representam BASES DE AMBULÂNCIA (Hospitais ou Postos)
     private final List<Long> idsBases = Arrays.asList(2L, 9L, 11L, 13L, 14L, 15L, 17L, 20L);
@@ -39,20 +40,36 @@ public class DataInitializer implements CommandLineRunner {
     public DataInitializer(CidadeRepository cidadeRepository, 
                            LocalizacaoRepository localizacaoRepository, 
                            RuaRepository ruaRepository,
-                           AmbulanciaRepository ambulanciaRepository) {
+                           AmbulanciaRepository ambulanciaRepository,
+                           EquipeRepository equipeRepository,
+                           OcorrenciaRepository ocorrenciaRepository) {
         this.cidadeRepository = cidadeRepository;
         this.localizacaoRepository = localizacaoRepository;
         this.ruaRepository = ruaRepository;
         this.ambulanciaRepository = ambulanciaRepository;
+        this.equipeRepository = equipeRepository;
+        this.ocorrenciaRepository = ocorrenciaRepository;
     }
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // 1. Limpar o banco de dados (Ordem importa devido às FKs)
+        // 1. Limpar o banco de dados NA ORDEM CORRETA (Filhos -> Pais)
         System.out.println("--- Limpando banco de dados... ---");
+        
+        // Limpa Ocorrencias (pois dependem de Localizacao)
+        ocorrenciaRepository.deleteAll();
+        
+        // Limpa Equipes (pois dependem de Ambulancia) -> ISSO RESOLVE SEU ERRO
+        equipeRepository.deleteAll();
+        
+        // Limpa Ruas (dependem de Localizacao)
         ruaRepository.deleteAll();
-        ambulanciaRepository.deleteAll(); // Limpa frota antiga
+        
+        // Limpa Ambulancias (agora seguro, pois não tem equipes vinculadas)
+        ambulanciaRepository.deleteAll(); 
+        
+        // Limpa Localizacao e Cidade
         localizacaoRepository.deleteAll();
         cidadeRepository.deleteAll();
 
@@ -68,8 +85,8 @@ public class DataInitializer implements CommandLineRunner {
         // 4. Importar Ruas usando o mapa
         importRuas(cidade, mapaBairros);
 
-        // 5. Criar Frota de Ambulâncias (CRUCIAL para o algoritmo funcionar)
-        criarFrotaAmbulancias(mapaBairros);
+        // 5. REMOVIDO: "criarFrotaAmbulancias"
+        // O sistema agora inicia SEM ambulâncias para você cadastrar manualmente no fluxo.
         
         System.out.println("--- Inicialização de dados concluída com sucesso! ---");
     }
@@ -80,7 +97,6 @@ public class DataInitializer implements CommandLineRunner {
         
         ClassPathResource resource = new ClassPathResource("data/bairros.csv");
         
-        // Adicionei StandardCharsets.UTF_8 para evitar problemas de acentuação
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
             boolean header = true;
@@ -94,14 +110,10 @@ public class DataInitializer implements CommandLineRunner {
                     String nome = data[1].trim();
     
                     Localizacao loc = new Localizacao();
-                    
-                    // CORREÇÃO AQUI: Setamos o ID manualmente pois não tem @GeneratedValue na Entidade
                     loc.setIdLocal(idCsv); 
-                    
                     loc.setNome(nome);
                     loc.setCidade(cidade);
     
-                    // Define se é Base ou Bairro comum
                     if (idsBases.contains(idCsv)) {
                         loc.setTipo(TipoLocalizacao.BASE_AMBULANCIA);
                     } else {
@@ -128,8 +140,6 @@ public class DataInitializer implements CommandLineRunner {
                 if (header) { header = false; continue; } 
 
                 String[] data = line.split(",");
-                // CSV: id,bairro_origem_id,bairro_destino_id,distancia_km
-                
                 if (data.length >= 4) {
                     Long idOrigemCsv = Long.parseLong(data[1].trim());
                     Long idDestinoCsv = Long.parseLong(data[2].trim());
@@ -150,38 +160,6 @@ public class DataInitializer implements CommandLineRunner {
                     }
                 }
             }
-        }
-    }
-
-    private void criarFrotaAmbulancias(Map<Long, Localizacao> mapaBairros) {
-        System.out.println("Criando frota de ambulâncias...");
-
-        // Cria uma UTI no Centro (ID 2)
-        criarAmbulancia("UTI-001", TipoAmbulancia.UTI, mapaBairros.get(2L));
-
-        // Cria uma Básica no Recanto Verde (ID 9)
-        criarAmbulancia("USB-101", TipoAmbulancia.BASICA, mapaBairros.get(9L));
-
-        // Cria uma UTI na Bela Vista (ID 14)
-        criarAmbulancia("UTI-002", TipoAmbulancia.UTI, mapaBairros.get(14L));
-
-        // Cria uma Básica no Lago Azul (ID 17)
-        criarAmbulancia("USB-102", TipoAmbulancia.BASICA, mapaBairros.get(17L));
-        
-        // Cria uma Básica na Morada do Sol (ID 15)
-        criarAmbulancia("USB-103", TipoAmbulancia.BASICA, mapaBairros.get(15L));
-    }
-
-    private void criarAmbulancia(String placa, TipoAmbulancia tipo, Localizacao base) {
-        if (base != null) {
-            Ambulancia amb = new Ambulancia();
-            amb.setPlaca(placa);
-            amb.setTipoAmbulancia(tipo);
-            amb.setStatusAmbulancia(AmbulanciaStatus.DISPONIVEL);
-            amb.setIsAtivo(true);
-            amb.setUnidade(base); // Define onde ela está parada
-            ambulanciaRepository.save(amb);
-            System.out.println("Ambulância " + placa + " criada na base " + base.getNome());
         }
     }
 }
