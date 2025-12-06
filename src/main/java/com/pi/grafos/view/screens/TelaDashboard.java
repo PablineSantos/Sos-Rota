@@ -9,9 +9,12 @@ import org.springframework.stereotype.Component;
 
 import com.pi.grafos.repository.AmbulanciaRepository;
 import com.pi.grafos.repository.LocalizacaoRepository;
+import com.pi.grafos.repository.OcorrenciaRepository;
 import com.pi.grafos.service.AmbulanciaService;
 import com.pi.grafos.service.FuncionarioService;
-import com.pi.grafos.service.grafosService; // <--- MUDANÇA 1: Import do serviço de grafos
+import com.pi.grafos.service.OcorrenciaService;
+import com.pi.grafos.service.grafosService;
+
 import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
 import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_BRANCO;
 import static com.pi.grafos.view.styles.AppStyles.COR_TEXTO_CLARO;
@@ -65,32 +68,34 @@ public class TelaDashboard {
 
     @Autowired
     private LocalizacaoRepository localizacaoRepository;
+    
+    @Autowired
+    private OcorrenciaRepository ocorrenciaRepository;
 
     @Autowired
-    private grafosService grafosService; // <--- MUDANÇA 2: Injetando o serviço de Grafos
+    private OcorrenciaService ocorrenciaService;
+
+    @Autowired
+    private grafosService grafosService;
 
 
     // --- CONFIGURAÇÕES VISUAIS ---
     private static final double LARGURA_SIDEBAR = 240;
     private static final double LARGURA_RESUMO = 320;
 
-    // --- ESTADO DA TELA (Variáveis globais da classe) ---
-    private HBox rootLayout;      // O layout principal que segura tudo
-    private Region centerMap;     // O mapa original
-    private List<Button> botoesMenu = new ArrayList<>(); // Lista para controlar qual botão está ativo
-
+    // --- ESTADO DA TELA ---
+    private HBox rootLayout;
+    private Region centerMap;
+    private List<Button> botoesMenu = new ArrayList<>();
     private final ObjectProvider<GestaoEquipesView> gestaoEquipesProvider;
 
     public TelaDashboard(ObjectProvider<GestaoEquipesView> gestaoEquipesProvider) {
         this.gestaoEquipesProvider = gestaoEquipesProvider;
     }
 
-
     public Parent criarConteudo(Stage stage) {
 
-        // =============================================================================================
-        // 1. COLUNA ESQUERDA: MENU LATERAL
-        // =============================================================================================
+        // 1. MENU LATERAL
         VBox sidebar = new VBox(10);
         sidebar.setPadding(new Insets(30, 20, 30, 20));
         sidebar.setPrefWidth(LARGURA_SIDEBAR);
@@ -98,7 +103,6 @@ public class TelaDashboard {
         sidebar.setStyle("-fx-background-color: " + HEX_SIDEBAR_BG + ";");
         sidebar.setAlignment(Pos.TOP_CENTER);
 
-        // --- LOGO ---
         ImageView logoView = new ImageView();
         try {
             Image logoImage = new Image(getClass().getResourceAsStream("/images/logo2.png"));
@@ -107,28 +111,24 @@ public class TelaDashboard {
             logoView.setPreserveRatio(true);
         } catch (Exception e) { System.err.println("Erro logo dashboard"); }
 
-        // --- TÍTULO DO PAINEL ---
         Label lblTituloPainel = new Label("PAINEL");
         lblTituloPainel.setFont(FONTE_TITULO);
         lblTituloPainel.setTextFill(COR_TEXTO_BRANCO);
 
-        // --- BOTÕES DE NAVEGAÇÃO ---
         Button btnDashboard = criarBotaoMenu("Dashboard", "🏠");
-        // Ação: Voltar para o Mapa e pintar de vermelho
         btnDashboard.setOnAction(e -> {
             atualizarEstiloBotao(btnDashboard);
             setConteudoCentral(centerMap);
         });
 
         Button btnNovaOcorrencia = criarBotaoMenu("Nova Ocorrência", "➕");
-        // Ação: Mostrar formulário de cadastro
         btnNovaOcorrencia.setOnAction(e -> {
             atualizarEstiloBotao(btnNovaOcorrencia);
-            
-            // MUDANÇA 3: Passando as dependências necessárias para o construtor
             setConteudoCentral(new FormularioOcorrenciaView(
                 localizacaoRepository, 
                 ambulanciaRepository, 
+                ocorrenciaRepository, 
+                ocorrenciaService,    
                 grafosService
             ).criarView());
         });
@@ -136,12 +136,10 @@ public class TelaDashboard {
         Button btnFrota = criarBotaoMenu("Ambulâncias", "🚑");
         btnFrota.setOnAction(e -> {
             atualizarEstiloBotao(btnFrota);
-            // Injeta os repositórios reais do Spring na View
             setConteudoCentral(new GestaoAmbulanciasView(ambulanciaService, localizacaoRepository).criarView());
         });
 
         Button btnEquipe = criarBotaoMenu("Equipe", "👨‍⚕️");
-
         btnEquipe.setOnAction(e -> {
             atualizarEstiloBotao(btnEquipe);
             GestaoEquipesView view = gestaoEquipesProvider.getObject();
@@ -160,9 +158,6 @@ public class TelaDashboard {
             setConteudoCentral(criarPlaceholderFormulario("Relatório"));
         });
 
-
-
-        // Espacador
         Region spacerMenu = new Region();
         VBox.setVgrow(spacerMenu, Priority.ALWAYS);
 
@@ -175,41 +170,28 @@ public class TelaDashboard {
         sidebar.getChildren().addAll(logoView, lblTituloPainel, btnDashboard, btnNovaOcorrencia, btnFrota, btnEquipe, btnColaborador, btnRelatorio, spacerMenu, btnSair);
 
 
-        // =============================================================================================
-        // 2. COLUNA CENTRAL: MAPA DA CIDADE
-        // =============================================================================================
+        // 2. MAPA CENTRAL
         centerMap = new Region();
-
         try {
             Image imgMap = new Image(getClass().getResourceAsStream("/images/ambulancias.jpeg"));
-            BackgroundSize bgSize = new BackgroundSize(1.0, 1.0, true, true, false, true); // COVER
-            BackgroundImage bgImage = new BackgroundImage(
-                    imgMap,
-                    BackgroundRepeat.NO_REPEAT,
-                    BackgroundRepeat.NO_REPEAT,
-                    BackgroundPosition.CENTER,
-                    bgSize
-            );
+            BackgroundSize bgSize = new BackgroundSize(1.0, 1.0, true, true, false, true);
+            BackgroundImage bgImage = new BackgroundImage(imgMap, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, bgSize);
             centerMap.setBackground(new Background(bgImage));
         } catch (Exception e) {
             centerMap.setStyle("-fx-background-color: #CBD5E1;");
         }
 
-        // =============================================================================================
-        // 3. COLUNA DIREITA: RESUMO
-        // =============================================================================================
+        // 3. PAINEL DIREITO
         VBox rightPanel = new VBox(25);
         rightPanel.setPadding(new Insets(30));
         rightPanel.setPrefWidth(LARGURA_RESUMO);
         rightPanel.setMinWidth(LARGURA_RESUMO);
         rightPanel.setStyle("-fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, -5, 0);");
 
-        // --- Título Resumo ---
         Label lblResumo = new Label("Resumo Operacional");
         lblResumo.setFont(FONTE_SUBTITULO);
         lblResumo.setTextFill(COR_AZUL_NOTURNO);
 
-        // --- SEÇÃO 1: LISTA DE OCORRÊNCIAS ---
         Label lblPendentes = new Label("Ocorrências Pendentes");
         lblPendentes.setFont(FONTE_CORPO);
         lblPendentes.setTextFill(COR_TEXTO_CLARO);
@@ -225,7 +207,6 @@ public class TelaDashboard {
         scrollPane.setPrefHeight(300);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
-        // --- SEÇÃO 2: CONTADOR DE FROTA ---
         VBox painelFrota = new VBox(5);
         painelFrota.setAlignment(Pos.CENTER);
         painelFrota.setPadding(new Insets(20));
@@ -244,13 +225,9 @@ public class TelaDashboard {
         lblFrotaTotal.setTextFill(COR_TEXTO_BRANCO);
 
         painelFrota.getChildren().addAll(lblFrotaTitulo, lblFrotaNumero, lblFrotaTotal);
-
         rightPanel.getChildren().addAll(lblResumo, lblPendentes, scrollPane, painelFrota);
 
-
-        // =============================================================================================
         // MONTAGEM FINAL
-        // =============================================================================================
         rootLayout = new HBox();
         rootLayout.getChildren().addAll(sidebar, centerMap, rightPanel);
 
@@ -258,23 +235,15 @@ public class TelaDashboard {
         HBox.setHgrow(rightPanel, Priority.NEVER);
         HBox.setHgrow(centerMap, Priority.ALWAYS);
 
-        // Marca o botão Dashboard como ativo inicialmente
         atualizarEstiloBotao(btnDashboard);
 
         return rootLayout;
     }
 
-    // =============================================================================================
-    // MÉTODOS AUXILIARES (Mantidos inalterados)
-    // =============================================================================================
-
     private void setConteudoCentral(Node novoConteudo) {
-        // O índice 1 é sempre o centro (0=Esquerda, 1=Centro, 2=Direita)
         rootLayout.getChildren().remove(1);
         rootLayout.getChildren().add(1, novoConteudo);
-
         HBox.setHgrow(novoConteudo, Priority.ALWAYS);
-
         if (novoConteudo instanceof Region) {
             ((Region) novoConteudo).setMaxWidth(Double.MAX_VALUE);
             ((Region) novoConteudo).setMaxHeight(Double.MAX_VALUE);
@@ -289,7 +258,6 @@ public class TelaDashboard {
         for (Button b : botoesMenu) {
             b.setStyle(estiloNormal);
             alterarCorTextoBotao(b, Color.web("#E2E8F0"));
-
             b.setOnMouseEntered(e -> {
                 if (b != btnAtivo) {
                     b.setStyle(estiloHover);
@@ -303,7 +271,6 @@ public class TelaDashboard {
                 }
             });
         }
-
         btnAtivo.setStyle(estiloAtivo);
         alterarCorTextoBotao(btnAtivo, Color.WHITE);
         btnAtivo.setOnMouseEntered(null);
@@ -314,9 +281,7 @@ public class TelaDashboard {
         if (btn.getGraphic() instanceof TextFlow) {
             TextFlow flow = (TextFlow) btn.getGraphic();
             for (Node n : flow.getChildren()) {
-                if (n instanceof Text) {
-                    ((Text) n).setFill(cor);
-                }
+                if (n instanceof Text) ((Text) n).setFill(cor);
             }
         }
     }
@@ -326,14 +291,11 @@ public class TelaDashboard {
         form.setPadding(new Insets(40));
         form.setAlignment(Pos.TOP_LEFT);
         form.setStyle("-fx-background-color: #F1F5F9;");
-
         Label lbl = new Label(titulo);
         lbl.setFont(FONTE_TITULO);
         lbl.setTextFill(COR_AZUL_NOTURNO);
-
         Label lblDesc = new Label("O formulário de " + titulo + " será implementado aqui.");
         lblDesc.setFont(FONTE_CORPO);
-
         form.getChildren().addAll(lbl, lblDesc);
         return form;
     }
@@ -345,24 +307,20 @@ public class TelaDashboard {
         btn.setPadding(new Insets(12, 15, 12, 15));
         btn.setMinHeight(45);
         btn.setMaxHeight(45);
-
         javafx.scene.text.Text txtEmoji = new javafx.scene.text.Text(iconeEmoji);
         txtEmoji.setFont(Font.font("Segoe UI Emoji", 16));
         txtEmoji.setFill(Color.web("#E2E8F0"));
-
         javafx.scene.text.Text txtLabel = new javafx.scene.text.Text("  " + texto);
         txtLabel.setFont(FONTE_BOTAO2);
         txtLabel.setFill(Color.web("#E2E8F0"));
-
         javafx.scene.text.TextFlow flow = new javafx.scene.text.TextFlow(txtEmoji, txtLabel);
         flow.setTextAlignment(TextAlignment.LEFT);
-
         btn.setGraphic(flow);
         botoesMenu.add(btn);
-
         return btn;
     }
 
+    // --- CORREÇÃO AQUI NO MÉTODO DE CRIAR CARD ---
     private HBox criarCardOcorrencia(String titulo, String subtitulo, String corStatus, String bairro, String gravidade) {
         HBox card = new HBox(10);
         card.setPadding(new Insets(15));
@@ -379,8 +337,18 @@ public class TelaDashboard {
         card.setOnMouseClicked(e -> {
             System.out.println("Abrindo despacho rápido para: " + titulo);
             Stage stageAtual = (Stage) card.getScene().getWindow();
-            // Abre o Modal com dados fictícios para teste rápido
-            new ModalSelecaoAmbulancia().exibir(stageAtual, bairro, gravidade);
+            
+            // ATUALIZADO: Passamos 'null' para o ID e para a Lista, pois são dados fictícios.
+            // O modal vai abrir, mas mostrará "Nenhuma ambulância encontrada" ou "Erro".
+            // Isso resolve o erro de compilação.
+            new ModalSelecaoAmbulancia().exibir(
+                stageAtual, 
+                null, // ID da ocorrência (não existe para card fictício)
+                bairro, 
+                gravidade, 
+                null, // Lista de sugestões (não calculada)
+                ocorrenciaService // Serviço injetado
+            );
         });
 
         Circle statusDot = new Circle(5, Color.web(corStatus));

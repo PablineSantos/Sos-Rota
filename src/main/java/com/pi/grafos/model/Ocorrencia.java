@@ -36,4 +36,11 @@ public class Ocorrencia {
 
     @Enumerated(EnumType.STRING)
     private OcorrenciaStatus gravidade;
+
+    @ManyToOne
+    @JoinColumn(name = "id_ambulancia_despachada")
+    private Ambulancia ambulancia;
+
+    public Ambulancia getAmbulancia() { return ambulancia; }
+    public void setAmbulancia(Ambulancia ambulancia) { this.ambulancia = ambulancia; }
 }

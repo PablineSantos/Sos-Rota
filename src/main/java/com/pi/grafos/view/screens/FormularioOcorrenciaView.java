@@ -6,8 +6,12 @@ import java.util.List;
 
 import com.pi.grafos.model.Ambulancia;
 import com.pi.grafos.model.Localizacao;
+import com.pi.grafos.model.Ocorrencia;
+import com.pi.grafos.model.enums.OcorrenciaStatus;
 import com.pi.grafos.repository.AmbulanciaRepository;
 import com.pi.grafos.repository.LocalizacaoRepository;
+import com.pi.grafos.repository.OcorrenciaRepository;
+import com.pi.grafos.service.OcorrenciaService;
 import com.pi.grafos.service.grafosService;
 import com.pi.grafos.service.grafosService.SugestaoAmbulancia;
 import static com.pi.grafos.view.styles.AppStyles.COR_AZUL_NOTURNO;
@@ -39,6 +43,8 @@ public class FormularioOcorrenciaView {
 
     private final LocalizacaoRepository localizacaoRepository;
     private final AmbulanciaRepository ambulanciaRepository;
+    private final OcorrenciaRepository ocorrenciaRepository; // ADICIONADO
+    private final OcorrenciaService ocorrenciaService;       // ADICIONADO
     private final grafosService grafosService;
 
     private ComboBox<Localizacao> comboBairro;
@@ -47,11 +53,16 @@ public class FormularioOcorrenciaView {
     private TextArea txtObservacao;
     private Label lblSlaInfo;
 
+    // Construtor atualizado para receber as novas dependências
     public FormularioOcorrenciaView(LocalizacaoRepository localizacaoRepository,
                                     AmbulanciaRepository ambulanciaRepository,
+                                    OcorrenciaRepository ocorrenciaRepository, // Novo
+                                    OcorrenciaService ocorrenciaService,       // Novo
                                     grafosService grafosService) {
         this.localizacaoRepository = localizacaoRepository;
         this.ambulanciaRepository = ambulanciaRepository;
+        this.ocorrenciaRepository = ocorrenciaRepository;
+        this.ocorrenciaService = ocorrenciaService;
         this.grafosService = grafosService;
     }
 
@@ -153,7 +164,7 @@ public class FormularioOcorrenciaView {
                         return;
                     }
 
-                    // 2. Calcula Rota (O LOG MOSTROU QUE ISSO FUNCIONA!)
+                    // 2. Calcula Rota
                     List<SugestaoAmbulancia> sugestoes = grafosService.sugerirAmbulancias(
                         bairroSelecionado.getIdLocal(), 
                         frotaDisponivel
@@ -163,8 +174,29 @@ public class FormularioOcorrenciaView {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION, "Nenhuma rota encontrada para o local selecionado.");
                         alert.show();
                     } else {
-                        // 3. PASSA A LISTA PARA O MODAL (ESSA É A CORREÇÃO PRINCIPAL)
-                        new ModalSelecaoAmbulancia().exibir(stageAtual, bairroSelecionado.getNome(), gravidade, sugestoes);
+                        // --- CORREÇÃO AQUI ---
+                        
+                        // 3. Primeiro SALVAMOS a Ocorrência para gerar o ID
+                        Ocorrencia novaOcorrencia = new Ocorrencia();
+                        novaOcorrencia.setLocal(bairroSelecionado);
+                        novaOcorrencia.setDescricao(txtObservacao.getText());
+                        novaOcorrencia.setGravidade(OcorrenciaStatus.valueOf(gravidade)); // Converte String para Enum
+                        
+                        // Obs: O tipo de ocorrencia (Acidente, etc) precisaria de um repository pra buscar o objeto
+                        // Por enquanto deixaremos null ou você pode implementar a busca do TipoOcorrencia depois.
+                        
+                        Ocorrencia ocorrenciaSalva = ocorrenciaRepository.save(novaOcorrencia);
+                        Long idGerado = ocorrenciaSalva.getIdOcorrencia();
+
+                        // 4. Agora passamos o ID e o SERVICE para o Modal
+                        new ModalSelecaoAmbulancia().exibir(
+                            stageAtual, 
+                            idGerado, // ID novo
+                            bairroSelecionado.getNome(), 
+                            gravidade, 
+                            sugestoes,
+                            ocorrenciaService // Service injetado
+                        );
                     }
                     
                 } catch (Exception ex) {
@@ -187,9 +219,7 @@ public class FormularioOcorrenciaView {
 
     private void carregarBairrosDoBanco() {
         try {
-            // Traz TUDO (Bairros + Bases) para você conseguir testar qualquer rota
             List<Localizacao> todos = localizacaoRepository.findAll();
-            // Ordena alfabeticamente
             todos.sort((a, b) -> a.getNome().compareToIgnoreCase(b.getNome()));
             comboBairro.setItems(FXCollections.observableArrayList(todos));
         } catch (Exception e) {
