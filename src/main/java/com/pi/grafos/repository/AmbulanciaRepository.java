@@ -18,8 +18,11 @@ public interface AmbulanciaRepository extends JpaRepository<Ambulancia, Long> {
     Optional<Ambulancia> findByPlacaIgnoreCase(String placa);
     
     List<Ambulancia> findByStatusAmbulancia(AmbulanciaStatus status);
+
     List<Ambulancia> findByTipoAmbulancia(TipoAmbulancia tipo);
 
     List<Ambulancia> findByUnidade(Localizacao local);
+
+    int countByStatusAmbulancia(AmbulanciaStatus status);
 
 }

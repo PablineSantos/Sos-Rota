@@ -138,4 +138,16 @@ public class OcorrenciaService {
         long media = totalMinutos / quantidadeConsiderada;
         return media + " min";
     }
+
+    public int contarAlta() {
+        return ocorrenciaRepository.countByGravidade(OcorrenciaStatus.ALTA);
+    }
+
+    public int contarMedia() {
+        return ocorrenciaRepository.countByGravidade(OcorrenciaStatus.MEDIA);
+    }
+
+    public int contarBaixa() {
+        return ocorrenciaRepository.countByGravidade(OcorrenciaStatus.BAIXA);
+    }
 }

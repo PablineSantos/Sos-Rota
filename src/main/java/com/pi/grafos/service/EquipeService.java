@@ -44,15 +44,14 @@ public class EquipeService {
     public List<Funcionario> buscarDisponiveisParaTurno(Turno turno, Equipe equipeAtual) {
         // 1. Pega todos os funcionários do banco
         List<Funcionario> todos = funcionarioRepository.findAll();
-        
-        if (turno == null) return todos; // Se não escolheu turno, mostra todo mundo (ou retorna vazio, dependendo da regra)
 
+        if (turno == null) return todos; // Se não escolheu turno, mostra todo mundo 
         // 2. Pega todas as equipes do banco
         List<Equipe> todasEquipes = equipeRepository.findAll();
 
         // 3. Cria uma lista de IDs de quem já está ocupado nesse turno
         Set<Long> idsOcupados = new HashSet<>();
-        
+
         for (Equipe eq : todasEquipes) {
             // Verifica se é do mesmo turno
             if (eq.getTurno() == turno) {
@@ -60,7 +59,7 @@ public class EquipeService {
                  if (equipeAtual != null && eq.getIdEquipe().equals(equipeAtual.getIdEquipe())) {
                      continue; 
                  }
-                 
+
                  // Adiciona os membros dessa equipe na lista de ocupados
                  if (eq.getMembros() != null) {
                      for (Funcionario membro : eq.getMembros()) {

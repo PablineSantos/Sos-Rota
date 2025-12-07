@@ -1,5 +1,6 @@
 package com.pi.grafos.view.screens;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +8,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.pi.grafos.controller.DashboardController;
 import com.pi.grafos.repository.AmbulanciaRepository;
 import com.pi.grafos.repository.LocalizacaoRepository;
 import com.pi.grafos.repository.OcorrenciaRepository;
@@ -28,6 +30,7 @@ import static com.pi.grafos.view.styles.AppStyles.HEX_SIDEBAR_BG;
 import static com.pi.grafos.view.styles.AppStyles.HEX_SIDEBAR_HOVER;
 import static com.pi.grafos.view.styles.AppStyles.HEX_VERMELHO;
 
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -87,7 +90,7 @@ public class TelaDashboard {
     private static final double LARGURA_SIDEBAR = 240;
     private static final double LARGURA_RESUMO = 320;
 
-    // --- ESTADO DA TELA ---
+    // --- ESTADO DA TELA ---4
     private HBox rootLayout;
     private Region centerMap;
     private List<Button> botoesMenu = new ArrayList<>();
@@ -156,11 +159,9 @@ public class TelaDashboard {
             setConteudoCentral(new GestaoFuncionariosView(funcionarioService).criarView());
         });
 
-        // --- ATUALIZAÇÃO AQUI: Implementação do botão Relatórios ---
         Button btnRelatorio = criarBotaoMenu("Relatórios", "📊");
         btnRelatorio.setOnAction(e -> {
             atualizarEstiloBotao(btnRelatorio);
-            // Chama a nova view injetada
             setConteudoCentral(telaRelatoriosView.criarView());
         });
 
@@ -203,9 +204,23 @@ public class TelaDashboard {
         lblPendentes.setTextFill(COR_TEXTO_CLARO);
 
         VBox listaContainer = new VBox(10);
-        listaContainer.getChildren().add(criarCardOcorrencia("Acidente Centro", "Alta Prioridade - Requer UTI", HEX_VERMELHO, "Centro", "ALTA"));
-        listaContainer.getChildren().add(criarCardOcorrencia("Mal Súbito", "Média Prioridade - Jd. América", "#F59E0B", "Jardim América", "MÉDIA"));
-        listaContainer.getChildren().add(criarCardOcorrencia("Transporte Eletivo", "Baixa Prioridade - Vila Nova", "#10B981", "Vila Nova", "BAIXA"));
+
+        // --- SETUP DAS LABELS PARA ATUALIZAÇÃO AUTOMÁTICA ---
+        Label lblAlta = new Label("0");
+        Label lblMedia = new Label("0");
+        Label lblBaixa = new Label("0");
+
+        listaContainer.getChildren().add(criarCardOcorrencia(
+            "Acidente Centro", "Alta Prioridade", "#EF4444", "Centro", "ALTA", lblAlta
+        ));
+
+        listaContainer.getChildren().add(criarCardOcorrencia(
+            "Mal Súbito", "Média Prioridade", "#F59E0B", "Jardim América", "MÉDIA", lblMedia
+        ));
+
+        listaContainer.getChildren().add(criarCardOcorrencia(
+            "Transporte Eletivo", "Baixa Prioridade", "#10B981", "Vila Nova", "BAIXA", lblBaixa
+        ));
 
         ScrollPane scrollPane = new ScrollPane(listaContainer);
         scrollPane.setFitToWidth(true);
@@ -213,6 +228,7 @@ public class TelaDashboard {
         scrollPane.setPrefHeight(300);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
+        // --- PAINEL FROTA ---
         VBox painelFrota = new VBox(5);
         painelFrota.setAlignment(Pos.CENTER);
         painelFrota.setPadding(new Insets(20));
@@ -222,7 +238,7 @@ public class TelaDashboard {
         lblFrotaTitulo.setFont(FONTE_CORPO);
         lblFrotaTitulo.setTextFill(COR_TEXTO_BRANCO);
 
-        Label lblFrotaNumero = new Label("5");
+        Label lblFrotaNumero = new Label("0");
         lblFrotaNumero.setFont(FONTE_TITULO);
         lblFrotaNumero.setTextFill(COR_TEXTO_BRANCO);
 
@@ -233,7 +249,18 @@ public class TelaDashboard {
         painelFrota.getChildren().addAll(lblFrotaTitulo, lblFrotaNumero, lblFrotaTotal);
         rightPanel.getChildren().addAll(lblResumo, lblPendentes, scrollPane, painelFrota);
 
-        // MONTAGEM FINAL
+        // --- INICIAR SERVIÇO DE ATUALIZAÇÃO ---
+        DashboardController controller = new DashboardController();
+        controller.iniciarServicoAtualizacao(
+            ocorrenciaService, 
+            ambulanciaService, 
+            lblAlta, 
+            lblMedia, 
+            lblBaixa, 
+            lblFrotaNumero
+        );
+
+        // 4. MONTAGEM FINAL
         rootLayout = new HBox();
         rootLayout.getChildren().addAll(sidebar, centerMap, rightPanel);
 
@@ -326,30 +353,23 @@ public class TelaDashboard {
         return btn;
     }
 
-    private HBox criarCardOcorrencia(String titulo, String subtitulo, String corStatus, String bairro, String gravidade) {
+    private HBox criarCardOcorrencia(String titulo, String subtitulo, String corStatus, String bairro, String gravidade, Label lblContador) {
         HBox card = new HBox(10);
         card.setPadding(new Insets(15));
         card.setAlignment(Pos.CENTER_LEFT);
 
-        String estiloNormal = "-fx-background-color: white; -fx-border-color: #E2E8F0; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;";
-        String estiloHover = "-fx-background-color: #F1F5F9; -fx-border-color: " + corStatus + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;";
+        // Styling (Kept your existing logic)
+        String estiloNormal = "-fx-background-color: white; -fx-border-color: #E2E8F0; -fx-border-width: 1; -fx-border-style: solid; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;";
+        String estiloHover = "-fx-background-color: #F1F5F9; -fx-border-color: " + corStatus + "; -fx-border-width: 1; -fx-border-style: solid; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;";
 
         card.setStyle(estiloNormal);
-
         card.setOnMouseEntered(e -> card.setStyle(estiloHover));
         card.setOnMouseExited(e -> card.setStyle(estiloNormal));
 
         card.setOnMouseClicked(e -> {
-            System.out.println("Abrindo despacho rápido para: " + titulo);
+            System.out.println("Abrindo despacho para: " + titulo);
             Stage stageAtual = (Stage) card.getScene().getWindow();
-            new ModalSelecaoAmbulancia().exibir(
-                stageAtual, 
-                null, 
-                bairro, 
-                gravidade, 
-                null, 
-                ocorrenciaService 
-            );
+            new ModalSelecaoAmbulancia().exibir(stageAtual, null, bairro, gravidade, null, ocorrenciaService);
         });
 
         Circle statusDot = new Circle(5, Color.web(corStatus));
@@ -361,11 +381,27 @@ public class TelaDashboard {
 
         Label lblSub = new Label(subtitulo);
         lblSub.setFont(FONTE_PEQUENA);
-        lblSub.setTextFill(Color.web(corStatus));
+        lblSub.setStyle("-fx-text-fill: #64748B;"); // Fixed color
 
         textos.getChildren().addAll(lblTit, lblSub);
-        card.getChildren().addAll(statusDot, textos);
-        HBox.setHgrow(textos, Priority.ALWAYS);
+        
+        // Spacer to push the count to the right
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // --- FIX FOR THE "..." ISSUE ---
+        lblContador.setFont(FONTE_PEQUENA);
+        // Force the label to not shrink below its content size
+        lblContador.setMinWidth(Region.USE_PREF_SIZE); 
+        lblContador.setMinHeight(Region.USE_PREF_SIZE);
+        
+        // Optional: Set a minimum width (e.g., 24px) so single digits look like a nice circle
+        // lblContador.setMinWidth(24); 
+        // lblContador.setAlignment(Pos.CENTER);
+
+        lblContador.setStyle("-fx-background-color: #F1F5F9; -fx-text-fill: #475569; -fx-background-radius: 12; -fx-padding: 2 8 2 8; -fx-font-weight: bold;");
+
+        card.getChildren().addAll(statusDot, textos, spacer, lblContador);
         card.setMaxWidth(Double.MAX_VALUE);
 
         return card;

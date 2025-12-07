@@ -23,4 +23,6 @@ public interface OcorrenciaRepository extends JpaRepository<Ocorrencia, Long> {
 
     List<Ocorrencia> findByGravidade(OcorrenciaStatus gravidade);
 
+    int countByGravidade(OcorrenciaStatus gravidade);
+
 }

@@ -42,7 +42,8 @@ public class Ocorrencia {
     @JoinColumn(name = "id_ambulancia_despachada")
     private Ambulancia ambulancia;
 
-    public Ambulancia getAmbulancia() { return ambulancia; }
+    public Ambulancia getAmbulancia() 
+    { return ambulancia; }
     public void setAmbulancia(Ambulancia ambulancia) { this.ambulancia = ambulancia; }
 
     private LocalDateTime dataHoraChamado; 

@@ -1,50 +1,68 @@
 package com.pi.grafos.controller;
 
+import com.pi.grafos.service.AmbulanciaService;
+import com.pi.grafos.service.OcorrenciaService;
+
+import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 public class DashboardController {
 
-    @FXML
-    private Label welcomeLabel;
+    // Updated method signature to accept AmbulanciaService and the extra Label
+    public void iniciarServicoAtualizacao(
+            OcorrenciaService ocorrenciaService, 
+            AmbulanciaService ambulanciaService, 
+            Label lblAlta, 
+            Label lblMedia, 
+            Label lblBaixa, 
+            Label lblAmbulancias) { // <--- New Label parameter
+        
+        // 1. Create a record to hold all 4 values
+        record DashboardDados(int alta, int media, int baixa, int ambulancias) {}
 
-    @FXML
-    private TextField placaAmbulancia;
+        ScheduledService<DashboardDados> updater = new ScheduledService<>() {
+            @Override
+            protected Task<DashboardDados> createTask() {
+                return new Task<>() {
+                    @Override
+                    protected DashboardDados call() throws Exception {
+                        // Safety check
+                        if (ocorrenciaService == null || ambulanciaService == null) {
+                            return new DashboardDados(0, 0, 0, 0);
+                        }
 
-    @FXML
-    private TextField estatusAmbulancia;
+                        // 2. Fetch data from BOTH services
+                        // (These run in the background thread)
+                        int a = ocorrenciaService.contarAlta();
+                        int m = ocorrenciaService.contarMedia();
+                        int b = ocorrenciaService.contarBaixa();
+                        int amb = ambulanciaService.contarAmbulancias(); // Assuming this method exists
+                        
+                        return new DashboardDados(a, m, b, amb);
+                    }
+                };
+            }
+        };
 
-    @FXML
-    private TextField tipoAmbulancia;
-
-    @FXML
-    private TextField unidadeAmbulancia;
-
-
-    public void setUsername(String username) {
-        welcomeLabel.setText("Seja bem-vindo, " + username + "!");
-    }
-
-    public void cadastrarAmbulancia(){
-        try {
+        // 3. Update the UI when data arrives
+        updater.setOnSucceeded(e -> {
+            DashboardDados dados = updater.getValue();
             
-            String PlacaAmbulancia = placaAmbulancia.getText();
-            String EstatusAmbulancia = estatusAmbulancia.getText();
-            String TipoAmbulancia = tipoAmbulancia.getText();
-            String UnidadeAmbulancia = unidadeAmbulancia.getText();
+            // Update Ocorrencia Cards
+            lblAlta.setText(String.valueOf(dados.alta()));
+            lblMedia.setText(String.valueOf(dados.media()));
+            lblBaixa.setText(String.valueOf(dados.baixa()));
 
+            // Update Ambulancia Panel
+            lblAmbulancias.setText(String.valueOf(dados.ambulancias()));
+        });
 
-            if((PlacaAmbulancia.isEmpty() || EstatusAmbulancia.isEmpty() || TipoAmbulancia.isEmpty() || UnidadeAmbulancia.isEmpty()) == true){
-                System.err.println("Erro de cadastro, verifique os campos");
-                return;
-            } 
-
-
-        } catch (Exception e) {
-            System.err.println("Erro ao carregar a tela do Dashboard!");
-            e.printStackTrace();
-        }
+        updater.setPeriod(Duration.seconds(5));
+        updater.start();
     }
-
 }

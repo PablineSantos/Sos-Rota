@@ -139,4 +139,8 @@ public class AmbulanciaService {
 
         repository.delete(ambulancia);
     }
+
+    public int contarAmbulancias() {
+        return repository.countByStatusAmbulancia(AmbulanciaStatus.DISPONIVEL);
+    }
 }
