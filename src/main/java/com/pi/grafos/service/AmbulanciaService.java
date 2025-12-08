@@ -32,6 +32,11 @@ public class AmbulanciaService {
         return repository.findAll();
     }
 
+    public List<Ambulancia> getDisponiveis() {
+        return repository.findByStatusAmbulancia(AmbulanciaStatus.DISPONIVEL);
+    }
+
+
     @Transactional
     public void salvarOuAtualizar(Long id, String placa, TipoAmbulancia tipo,
                                   Localizacao base, AmbulanciaStatus statusDesejado) {

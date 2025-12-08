@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.pi.grafos.controller.DashboardController;
+import com.pi.grafos.model.enums.OcorrenciaStatus;
 import com.pi.grafos.repository.AmbulanciaRepository;
 import com.pi.grafos.repository.LocalizacaoRepository;
 import com.pi.grafos.repository.OcorrenciaRepository;
@@ -369,7 +370,7 @@ public class TelaDashboard {
         card.setOnMouseClicked(e -> {
             System.out.println("Abrindo despacho para: " + titulo);
             Stage stageAtual = (Stage) card.getScene().getWindow();
-            new ModalSelecaoAmbulancia().exibir(stageAtual, null, bairro, gravidade, null, ocorrenciaService);
+            new ModalListOcorrencias().exibir(stageAtual, ocorrenciaService, OcorrenciaStatus.valueOf(gravidade.toUpperCase()));
         });
 
         Circle statusDot = new Circle(5, Color.web(corStatus));
