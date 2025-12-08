@@ -216,7 +216,7 @@ public class TelaDashboard {
         ));
 
         listaContainer.getChildren().add(criarCardOcorrencia(
-            "Mal Súbito", "Média Prioridade", "#F59E0B", "Jardim América", "MÉDIA", lblMedia
+            "Mal Súbito", "Média Prioridade", "#F59E0B", "Jardim América", "MEDIA", lblMedia
         ));
 
         listaContainer.getChildren().add(criarCardOcorrencia(
