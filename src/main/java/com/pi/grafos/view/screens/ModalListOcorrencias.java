@@ -2,6 +2,7 @@ package com.pi.grafos.view.screens;
 
 import com.pi.grafos.model.Ocorrencia;
 import com.pi.grafos.model.enums.OcorrenciaStatus;
+import com.pi.grafos.service.AmbulanciaService;
 import com.pi.grafos.service.OcorrenciaService;
 
 import javafx.geometry.Insets;
@@ -20,7 +21,6 @@ import java.util.List;
 
 public class ModalListOcorrencias {
 
-    // Assuming these constants exist in your class context
     private static final javafx.scene.text.Font FONTE_TITULO = new javafx.scene.text.Font("Arial", 20);
     private static final javafx.scene.text.Font FONTE_CORPO = new javafx.scene.text.Font("Arial", 14);
     private static final javafx.scene.text.Font FONTE_PEQUENA = new javafx.scene.text.Font("Arial", 12);
@@ -28,21 +28,22 @@ public class ModalListOcorrencias {
     private static final Color COR_AZUL_NOTURNO = Color.web("#1E293B");
 
     private OcorrenciaService ocorrenciaService;
+    private AmbulanciaService ambulanciaService;
 
-    // Call this method to open the window
-    public void exibir(Stage dono, OcorrenciaService ocorrenciaService, OcorrenciaStatus statusFiltro) {
+    public void exibir(Stage dono, OcorrenciaService ocorrenciaService, AmbulanciaService ambulanciaService, OcorrenciaStatus statusFiltro) {
         this.ocorrenciaService = ocorrenciaService;
+        this.ambulanciaService = ambulanciaService;
         
         Stage modal = new Stage();
         modal.initOwner(dono);
-        modal.initModality(Modality.APPLICATION_MODAL); // Or NONE if you want it to stay open alongside others
+        modal.initModality(Modality.APPLICATION_MODAL);
         modal.initStyle(StageStyle.TRANSPARENT);
 
         // --- Layout Base ---
         VBox root = new VBox(20);
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 0); -fx-border-color: #E2E8F0; -fx-border-width: 1; -fx-border-radius: 15;");
-        root.setPrefWidth(550); // Slightly wider for the list
+        root.setPrefWidth(550);
         root.setPrefHeight(700);
 
         // Header
@@ -67,47 +68,39 @@ public class ModalListOcorrencias {
             for (Ocorrencia oc : listaOcorrencias) {
                 
                 // --- Data Extraction ---
-                
-                // 1. Title: Use TipoOcorrencia (e.g., "Cardiac Arrest") or fallback to generic
                 String titulo = "Ocorrência";
                 if (oc.getTipoOcorrencia() != null) {
-                    // Change .getNome() or .getDescricao() to match your TipoOcorrencia class fields
                     titulo = oc.getTipoOcorrencia().toString(); 
                 }
 
-                // 2. Subtitle: The specific description of this event
                 String subtitulo = oc.getDescricao() != null ? oc.getDescricao() : "Sem descrição";
 
-                // 3. Location: Extract "Bairro" or address from Localizacao entity
                 String localTexto = "Local n/d";
                 if (oc.getLocal() != null) {
-                    // Change .getBairro() to match your Localizacao class fields
                     localTexto = oc.getLocal().getNome() != null ? oc.getLocal().getNome() : "Endereço desconhecido";
                 }
 
-                // 4. Color Logic based on 'gravidade' (OcorrenciaStatus Enum)
                 String corStatus = "#3B82F6"; // Default: Blue
                 String gravidadeStr = oc.getGravidade() != null ? oc.getGravidade().toString() : "N/A";
 
-                // Adjust strings below to match your exact Enum names (e.g., "ALTA", "GRAVE", "CRITICA")
                 if ("ALTA".equalsIgnoreCase(gravidadeStr) || "GRAVE".equalsIgnoreCase(gravidadeStr)) {
                     corStatus = "#EF4444"; // Red
                 } else if ("MEDIA".equalsIgnoreCase(gravidadeStr)) {
                     corStatus = "#F59E0B"; // Orange
                 }
 
-                // 5. Badge: Use the ID
+                // Badge: Use the ID
                 Label lblId = new Label("#" + oc.getIdOcorrencia());
                 
                 // --- Create Card ---
                 HBox card = criarCardOcorrencia(
-                    titulo,          // Title -> TipoOcorrencia
-                    subtitulo,       // Subtitle -> Descricao
-                    corStatus,       // Color -> Gravidade Logic
-                    localTexto,      // Location -> Localizacao
-                    gravidadeStr,    // Gravity Label
-                    lblId,           // Counter/Badge
-                    oc               // The full entity for the click event
+                    titulo,          
+                    subtitulo,       
+                    corStatus,       
+                    localTexto,      
+                    gravidadeStr,    
+                    lblId,           
+                    oc               
                 );
                 
                 containerLista.getChildren().add(card);
@@ -134,13 +127,10 @@ public class ModalListOcorrencias {
         scene.setFill(Color.TRANSPARENT);
         modal.setScene(scene);
         
-        // Center on screen
         modal.centerOnScreen();
-        
         modal.showAndWait();
     }
 
-    // --- Updated Card Method to handle the Click Logic ---
     private HBox criarCardOcorrencia(String titulo, String subtitulo, String corStatus, String bairro, String gravidade, Label lblContador, Ocorrencia ocorrencia) {
         HBox card = new HBox(10);
         card.setPadding(new Insets(15));
@@ -153,20 +143,7 @@ public class ModalListOcorrencias {
         card.setOnMouseEntered(e -> card.setStyle(estiloHover));
         card.setOnMouseExited(e -> card.setStyle(estiloNormal));
 
-        // --- CLICK ACTION ---
-        card.setOnMouseClicked(e -> {
-            System.out.println("Opening dispatch for ID: " + ocorrencia.getIdOcorrencia());
-            Stage stageAtual = (Stage) card.getScene().getWindow();
-            
-            // HERE IS THE LINK: We open your PREVIOUS window (ModalSelecaoAmbulancia)
-            // You might need to generate the logic to find suggestions here or pass null to let the next window handle it
-            // Assuming ModalSelecaoAmbulancia is the class handling the specific dispatch
-            // new ModalSelecaoAmbulancia().exibir(stageAtual, ocorrencia.getId(), bairro, gravidade, null, ocorrenciaService);
-            
-            // TIP: It's cleaner if ModalSelecaoAmbulancia fetches its own suggestions based on ID, 
-            // but if you have them ready, pass them here.
-        });
-
+        // --- Layout for Text ---
         Circle statusDot = new Circle(5, Color.web(corStatus));
 
         VBox textos = new VBox(4);
@@ -183,12 +160,40 @@ public class ModalListOcorrencias {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        // --- Right Side Actions ---
+        VBox rightSide = new VBox(5);
+        rightSide.setAlignment(Pos.CENTER_RIGHT);
+
+        // 1. ID Badge
         lblContador.setFont(FONTE_PEQUENA);
         lblContador.setMinWidth(Region.USE_PREF_SIZE); 
         lblContador.setMinHeight(Region.USE_PREF_SIZE);
         lblContador.setStyle("-fx-background-color: #F1F5F9; -fx-text-fill: #475569; -fx-background-radius: 12; -fx-padding: 2 8 2 8; -fx-font-weight: bold;");
+        
+        rightSide.getChildren().add(lblContador);
 
-        card.getChildren().addAll(statusDot, textos, spacer, lblContador);
+        // 2. Dispatch Logic
+        if (ocorrencia.getAmbulancia() == null) {
+            Button btnDespachar = new Button("Despachar");
+            btnDespachar.setStyle("-fx-background-color: #3B82F6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand; -fx-font-size: 11px;");
+            
+            btnDespachar.setOnAction(e -> {
+                 new ModalSelecaoAmbulancia().exibir(
+                     (Stage) card.getScene().getWindow(), 
+                     ocorrencia, 
+                     ambulanciaService, 
+                     ocorrenciaService
+                 );
+            });
+            
+            rightSide.getChildren().add(btnDespachar);
+        } else {
+            Label lblAmb = new Label("🚑 " + ocorrencia.getAmbulancia().getPlaca());
+            lblAmb.setStyle("-fx-text-fill: #10B981; -fx-font-weight: bold; -fx-font-size: 11px;");
+            rightSide.getChildren().add(lblAmb);
+        }
+
+        card.getChildren().addAll(statusDot, textos, spacer, rightSide);
         card.setMaxWidth(Double.MAX_VALUE);
 
         return card;
@@ -200,7 +205,7 @@ public class ModalListOcorrencias {
         box.setPadding(new Insets(30));
         box.setStyle("-fx-background-color: #FEF2F2; -fx-background-radius: 8; -fx-border-color: #FECACA; -fx-border-radius: 8;");
 
-        Label lblIcon = new Label("✓"); // Checkmark instead of warning?
+        Label lblIcon = new Label("✓"); 
         lblIcon.setStyle("-fx-font-size: 30px;");
         Label lblMsg = new Label("Nenhuma ocorrência encontrada.");
         lblMsg.setFont(FONTE_BOTAO2);

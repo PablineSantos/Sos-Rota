@@ -370,7 +370,7 @@ public class TelaDashboard {
         card.setOnMouseClicked(e -> {
             System.out.println("Abrindo despacho para: " + titulo);
             Stage stageAtual = (Stage) card.getScene().getWindow();
-            new ModalListOcorrencias().exibir(stageAtual, ocorrenciaService, OcorrenciaStatus.valueOf(gravidade.toUpperCase()));
+            new ModalListOcorrencias().exibir(stageAtual, ocorrenciaService, ambulanciaService, OcorrenciaStatus.valueOf(gravidade.toUpperCase()));
         });
 
         Circle statusDot = new Circle(5, Color.web(corStatus));
