@@ -124,7 +124,7 @@ Requisitos Funcionais e Não Funcionais
 
 Regras de Domínio
 
-Toda a documentação está disponível na pasta /docs do repositório.
+Toda a documentação está disponível na ERS SOS ROTA.
 
 👥 Equipe
 
