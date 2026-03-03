@@ -75,26 +75,23 @@ Implementei o sistema utilizando **Banco de Dados Relacional (PostgreSQL ou MySQ
 
 O projeto segue uma **arquitetura em camadas**, separando responsabilidades para facilitar manutenção, testes e evolução do sistema.
 
-
 src/main/
 ├── java/com/pi/grafos/
-│ ├── config/
-│ ├── controller/
-│ ├── model/
-│ ├── repository/
-│ ├── service/
-│ ├── view/
-│ ├── GrafosSpringApp.java
-│ ├── JavaFxApp.java
-│ └── Main.java
+│   ├── config/
+│   ├── controller/
+│   ├── model/
+│   ├── repository/
+│   ├── service/
+│   ├── view/
+│   ├── GrafosSpringApp.java
+│   ├── JavaFxApp.java
+│   └── Main.java
 │
-├── resources/
-│ ├── data/
-│ ├── fonts/
-│ │ └── Poppins/
-│ └── images/
-
-
+└── resources/
+    ├── data/
+    ├── fonts/
+    │   └── Poppins/
+    └── images/
 ---
 
 ## 🚀 Tecnologias Utilizadas
