@@ -74,7 +74,7 @@ Implementei o sistema utilizando **Banco de Dados Relacional (PostgreSQL ou MySQ
 ## 📂 Estrutura do Projeto
 
 O projeto segue uma **arquitetura em camadas**, separando responsabilidades para facilitar manutenção, testes e evolução do sistema.
-
+```text
 src/main/
 ├── java/com/pi/grafos/
 │   ├── config/
@@ -92,7 +92,7 @@ src/main/
     ├── fonts/
     │   └── Poppins/
     └── images/
----
+```
 
 ## 🚀 Tecnologias Utilizadas
 
