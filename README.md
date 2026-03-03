@@ -1,23 +1,15 @@
 # 🚑 SOS-Rota — Sistema Inteligente de Gestão e Despacho de Emergências
 
 ## 📌 Visão Geral
-
 O **SOS-Rota** é um sistema desenvolvido em **Java** com foco na **gestão e despacho otimizado de atendimentos de emergência** em uma cidade fictícia chamada **Cidália**.
 
-Desenvolvi este sistema aplicando conceitos de:
+Desenvolvi este sistema aplicando conceitos de **Engenharia de Software, Estruturas de Dados e Banco de Dados Relacional**, utilizando o **algoritmo de Dijkstra** para cálculo de **rotas mínimas entre bases de ambulâncias e locais de ocorrência**.
 
-- Engenharia de Software
-- Estruturas de Dados
-- Banco de Dados Relacional
-
-O sistema utiliza o **algoritmo de Dijkstra** para cálculo de **rotas mínimas entre bases de ambulâncias e locais de ocorrência**.
-
-Este projeto foi desenvolvido como parte do **Projeto Integrador 2025-2** do curso de **Bacharelado em Engenharia de Software – SENAI FATESG**.
+Este projeto foi desenvolvido como parte do **Projeto Integrador 2025-2 do curso de Bacharelado em Engenharia de Software – SENAI FATESG**.
 
 ---
 
-# 🎯 Objetivo do Projeto
-
+## 🎯 Objetivo do Projeto
 Meu objetivo com este projeto é **apoiar a gestão de atendimentos de emergência**, permitindo:
 
 - Cadastro e gerenciamento de ocorrências
@@ -28,7 +20,7 @@ Meu objetivo com este projeto é **apoiar a gestão de atendimentos de emergênc
 
 ---
 
-# 🧠 Principais Funcionalidades
+## 🧠 Principais Funcionalidades
 
 - 🔐 Autenticação de Usuários  
 - 🚑 Cadastro de Ambulâncias (tipo, status, base)  
@@ -41,7 +33,7 @@ Meu objetivo com este projeto é **apoiar a gestão de atendimentos de emergênc
 
 ---
 
-# ⚙️ Regras de Negócio Essenciais
+## ⚙️ Regras de Negócio Essenciais
 
 Durante o desenvolvimento, implementei as seguintes regras de negócio principais:
 
@@ -53,7 +45,7 @@ Durante o desenvolvimento, implementei as seguintes regras de negócio principai
 
 ---
 
-# 🗃️ Estrutura de Dados e Algoritmos
+## 🗃️ Estrutura de Dados e Algoritmos
 
 Neste projeto, utilizei:
 
@@ -63,9 +55,9 @@ Neste projeto, utilizei:
 
 ---
 
-# 🛢️ Banco de Dados
+## 🛢️ Banco de Dados
 
-Implementei o sistema utilizando **Banco de Dados Relacional** (**PostgreSQL** ou **MySQL**), com importação de dados a partir de **arquivos CSV**.
+Implementei o sistema utilizando **Banco de Dados Relacional (PostgreSQL ou MySQL)**, com importação de dados a partir de **arquivos CSV**.
 
 ### Principais entidades do sistema
 
@@ -79,6 +71,73 @@ Implementei o sistema utilizando **Banco de Dados Relacional** (**PostgreSQL** o
 
 ---
 
-# 📂 Estrutura do Projeto
+## 📂 Estrutura do Projeto
 
 O projeto segue uma **arquitetura em camadas**, separando responsabilidades para facilitar manutenção, testes e evolução do sistema.
+
+
+src/main/
+├── java/com/pi/grafos/
+│ ├── config/
+│ ├── controller/
+│ ├── model/
+│ ├── repository/
+│ ├── service/
+│ ├── view/
+│ ├── GrafosSpringApp.java
+│ ├── JavaFxApp.java
+│ └── Main.java
+│
+├── resources/
+│ ├── data/
+│ ├── fonts/
+│ │ └── Poppins/
+│ └── images/
+
+
+---
+
+## 🚀 Tecnologias Utilizadas
+
+- Java  
+- Spring Boot  
+- JDBC  
+- PostgreSQL  
+- Git  
+- GitHub  
+
+---
+
+## 📄 Documentação
+
+A documentação do projeto inclui:
+
+- Documento de Requisitos do Sistema (**ERS**)
+- Histórias de Usuário
+- Requisitos Funcionais
+- Requisitos Não Funcionais
+- Regras de Domínio
+
+Toda a documentação está disponível na **ERS SOS ROTA**.
+
+---
+
+## 👥 Equipe
+
+- Hatus  
+- Gabriel  
+- Hyan  
+- Pabline  
+
+---
+
+## 📅 Período de Desenvolvimento
+
+- **Início:** 17/11/2025  
+- **Conclusão:** 08/12/2025  
+
+---
+
+## 📜 Licença
+
+Este projeto é de **uso acadêmico**, desenvolvido exclusivamente para **fins educacionais**.
